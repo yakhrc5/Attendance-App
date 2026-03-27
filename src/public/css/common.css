@@ -1,0 +1,150 @@
+/* =============================
+   全体設定
+============================= */
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: "Inter", "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, system-ui,
+        -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #000000;
+    ;
+    background: #ffffff;
+}
+
+/* =============================
+   ヘッダー
+============================= */
+
+/* ヘッダー全体 */
+.header {
+    width: 100%;
+    background: #000000;
+}
+
+/* ヘッダー内側 */
+.header__inner {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 1540px;
+    min-height: 80px;
+    margin: 0 auto;
+    padding: 0 24px;
+    box-sizing: border-box;
+}
+
+/* ロゴ領域 */
+.header__logo {
+    flex: 0 0 auto;
+}
+
+/* ロゴリンク */
+.header__logo-link {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+/* ロゴ画像 */
+.header__logo-img {
+    display: block;
+    width: auto;
+    height: 36px;
+}
+
+/* =============================
+   ヘッダー：ナビゲーション
+============================= */
+
+/* ナビゲーション全体 */
+.header__nav {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    margin-left: auto;
+}
+
+.header__nav-link {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.header__logout-form {
+    margin: 0;
+}
+
+.header__nav-button {
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+}
+
+/* =============================
+   メイン領域
+============================= */
+
+.layout__main {
+}
+
+/* =============================
+   共通見出し
+============================= */
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* =============================
+   ヘッダー：PC幅微調整
+============================= */
+@media screen and (min-width: 1400px) and (max-width: 1540px) {
+    .header__nav {
+        gap: 24px;
+    }
+}
+
+/* =============================
+タブレット対応   768px〜850px
+============================= */
+
+@media screen and (min-width: 768px) and (max-width: 850px) {
+    .header__inner {
+        min-height: 76px;
+        padding: 0 20px;
+    }
+
+    .header__logo-image {
+        height: 32px;
+    }
+
+    .header__nav {
+        gap: 14px;
+    }
+
+    .header__nav-link,
+    .header__nav-button {
+        font-size: 18px;
+    }
+
+}

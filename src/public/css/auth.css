@@ -1,0 +1,225 @@
+/* =============================
+認証画面
+ログイン画面 / 会員登録画面で共通利用
+============================= */
+
+/* 認証画面全体
+common.css の .layout__main に余白があるため、
+ここではフォーム周辺の調整のみ行う */
+.auth {
+    width: 100%;
+    padding: 78px 20px 0;
+    box-sizing: border-box;
+}
+
+.auth--register {
+    padding-top: 56px;
+}
+
+/* 内側コンテナ
+   固定幅ではなく最大幅で管理する */
+.auth__container {
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+/* タイトル */
+.auth__title {
+    margin: 0 0 54px;
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+}
+
+/* フォーム全体 */
+.auth__form {
+    width: 100%;
+}
+
+/* 入力項目ブロック */
+.auth__field {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+/* ラベル */
+.auth__label {
+    display: block;
+    margin: 0 0 8px;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* 入力欄 */
+.auth__input {
+    width: 100%;
+    height: 57px;
+    padding: 0 12px;
+    border: 1px solid #5F5F5F;
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 20px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+/* 入力欄フォーカス時 */
+.auth__input:focus {
+    border-color: #0073cc;
+}
+
+/* エラーメッセージ */
+.auth__error-area {
+    min-height: 28px;
+    padding-top: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+    color: #000000;
+}
+
+.auth__error {
+    margin: 0;
+}
+
+/* ログインボタン */
+.auth__btn {
+    display: block;
+    width: 100%;
+    min-height: 65px;
+    margin: 0 auto 0;
+    border: none;
+    border-radius: 5px;
+    background: #000000;
+    color: #ffffff;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.auth__btn--login {
+    margin-top: 50px;
+}
+
+.auth__btn--register {
+    margin-top: 88px;
+}
+
+/* ログインボタン hover */
+.auth__btn:hover {
+    background: #000000;
+}
+
+/* 会員登録リンク領域 */
+.auth__link {
+    margin: 18px 0 0;
+    text-align: center;
+}
+
+/* 会員登録リンク */
+.auth__link-anchor {
+    margin-top: 15px;
+    display: inline-block;
+    color: #0073cc;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1;
+    text-decoration: none;
+}
+
+/* 会員登録リンク hover */
+.auth__link-anchor:hover {
+    text-decoration: underline;
+}
+
+/* =============================
+タブレット対応   768px〜850px
+============================= */
+
+@media screen and (min-width: 768px) and (max-width: 850px) {
+    .auth {
+        padding: 24px 24px 0;
+    }
+
+    .auth__title {
+        margin-bottom: 24px;
+        font-size: 22px;
+    }
+
+    .auth__field {
+        margin-bottom: 16px;
+    }
+
+    .auth__label {
+        font-size: 20px;
+    }
+
+    .auth__input {
+        min-height: 56px;
+    }
+
+    .auth__btn {
+        min-height: 56px;
+        font-size: 22px;
+    }
+
+    .auth__btn--login {
+        margin-top: 20px;
+    }
+
+    .auth__btn--register {
+        margin-top: 32px;
+    }
+
+    .auth__link {
+        margin-top: 60px;
+    }
+
+    .auth__link-anchor {
+        font-size: 18px;
+    }
+}
+
+/* =============================
+768px未満でも崩れにくくする
+============================= */
+
+@media screen and (max-width: 767px) {
+    .auth {
+        padding: 20px 16px 0;
+    }
+
+    .auth__title {
+        margin-bottom: 22px;
+        font-size: 22px;
+    }
+
+    .auth__label {
+        font-size: 16px;
+    }
+
+    .auth__input {
+        min-height: 52px;
+    }
+
+    .auth__btn {
+        min-height: 52px;
+        font-size: 20px;
+    }
+
+    .auth__btn--login {
+        margin-top: 20px;
+    }
+
+    .auth__btn--register {
+        margin-top: 32px;
+    }
+
+    .auth__link-anchor {
+        font-size: 16px;
+    }
+}
