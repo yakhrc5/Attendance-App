@@ -20,9 +20,6 @@ class CreateAttendancesTable extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->unsignedTinyInteger('status')
-                ->comment('1:出勤中 2:休憩中 3:退勤済');
-
             $table->date('work_date');
             $table->dateTime('clock_in_at');
             $table->dateTime('clock_out_at')->nullable();

@@ -22,13 +22,17 @@
 
 <body>
     @php
-        // 認証系画面では「ロゴのみヘッダー」にする
-        $isAuthHeader = request()->routeIs(
-            'login',
-            'register',
-            'verification.notice',
-            'verification.verify'
-        );
+    // 認証系画面では「ロゴのみヘッダー」にする
+    $isAuthHeader = request()->routeIs(
+    'login',
+    'register',
+    'verification.notice',
+    'verification.verify'
+    );
+
+    // default: 通常ログイン後
+    // after_clock_out: 退勤後
+    $headerMode = $headerMode ?? 'default';
     @endphp
 
     {{-- ヘッダー --}}
@@ -46,23 +50,39 @@
 
             {{-- 認証系画面以外ではナビゲーションを表示 --}}
             @unless($isAuthHeader)
-                <nav class="header__nav" aria-label="グローバルナビゲーション">
-                    @auth
-                        {{-- ※ パスは仮です。実際のルーティングに合わせて調整してください --}}
-                        <a href="{{ url('/attendance') }}" class="header__nav-link">勤怠</a>
-                        <a href="{{ url('/attendance/list') }}" class="header__nav-link">勤怠一覧</a>
-                        <a href="{{ url('/requests') }}" class="header__nav-link">申請</a>
+            <nav class="header__nav" aria-label="グローバルナビゲーション">
+                @auth
+                @if ($headerMode === 'after_clock_out')
+                {{-- 退勤後ヘッダー --}}
+                <a href="{{ route('attendance.list') }}" class="header__nav-link">
+                    今月の出勤一覧
+                </a>
+                <a href="{{ url('/stamp_correction_request/list') }}" class="header__nav-link">
+                    申請一覧
+                </a>
+                @else
+                {{-- 通常ヘッダー --}}
+                <a href="{{ route('attendance.index') }}" class="header__nav-link">
+                    勤怠
+                </a>
+                <a href="{{ route('attendance.list') }}" class="header__nav-link">
+                    勤怠一覧
+                </a>
+                <a href="{{ url('/stamp_correction_request/list') }}" class="header__nav-link">
+                    申請
+                </a>
+                @endif
 
-                        <form action="{{ route('logout') }}" method="POST" class="header__logout-form">
-                            @csrf
-                            <button type="submit" class="header__nav-button">ログアウト</button>
-                        </form>
-                    @endauth
+                <form action="{{ route('logout') }}" method="POST" class="header__logout-form">
+                    @csrf
+                    <button type="submit" class="header__nav-button">ログアウト</button>
+                </form>
+                @endauth
 
-                    @guest
-                        <a href="{{ route('login') }}" class="header__nav-link">ログイン</a>
-                    @endguest
-                </nav>
+                @guest
+                <a href="{{ route('login') }}" class="header__nav-link">ログイン</a>
+                @endguest
+            </nav>
             @endunless
         </div>
     </header>

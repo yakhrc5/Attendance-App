@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AttendanceListController;
-use App\Http\Controllers\RequestController;
+use App\Http\Controllers\AttendanceDetailController;
+use App\Http\Controllers\AttendanceRequestController;
+use App\Http\Controllers\StampCorrectionRequestListController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -35,14 +37,11 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| Auth only (verified じゃなくてOK)
+| 認証済み前でも表示が必要なルート
 |--------------------------------------------------------------------------
-| ※ verification.notice は未認証ユーザーも見る必要があるので verified は付けない
 */
 Route::middleware('auth')->group(function () {
-    // 認証誘導画面を差し替え
     Route::get('/email/verify', function () {
-        // 認証完了後にプロフィールへ遷移させるため、意図的に intended を上書き
         session(['url.intended' => route('attendance.index')]);
 
         return view('auth.verify-email');
@@ -51,23 +50,40 @@ Route::middleware('auth')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| 一般ユーザー：認証必須
+| 一般ユーザー：認証 + メール認証必須
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     // 勤怠登録画面
     Route::get('/attendance', [AttendanceController::class, 'index'])
         ->name('attendance.index');
 
     // 打刻処理
-    Route::post('/attendance', [AttendanceController::class, 'store'])
-        ->name('attendance.store');
+    Route::post('/attendance/clock-in', [AttendanceController::class, 'clockIn'])
+        ->name('attendance.clock-in');
+
+    Route::post('/attendance/clock-out', [AttendanceController::class, 'clockOut'])
+        ->name('attendance.clock-out');
+
+    Route::post('/attendance/break-start', [AttendanceController::class, 'breakStart'])
+        ->name('attendance.break-start');
+
+    Route::post('/attendance/break-end', [AttendanceController::class, 'breakEnd'])
+        ->name('attendance.break-end');
 
     // 勤怠一覧
-    Route::get('/attendance/list', [AttendanceListController::class, 'index'])
+    Route::get('/attendance/list', [AttendanceListController::class, 'show'])
         ->name('attendance.list');
 
+    // 勤怠詳細画面
+    Route::get('/attendance/detail/{id}', [AttendanceDetailController::class, 'show'])
+        ->name('attendance.detail');
+
+    // 修正申請
+    Route::post('/attendance/request/{id}', [AttendanceRequestController::class, 'store'])
+        ->name('attendance.request.store');
+
     // 申請一覧
-    Route::get('/requests', [RequestController::class, 'index'])
-        ->name('requests.index');
+    Route::get('/stamp_correction_request/list', [StampCorrectionRequestListController::class, 'index'])
+        ->name('stamp_correction_request.list');
 });

@@ -1,0 +1,186 @@
+/* =============================
+   ページ全体
+============================= */
+.request-list {
+    min-height: calc(100vh - 80px);
+    padding: 48px 20px 80px;
+    background: #f1f1f1;
+    box-sizing: border-box;
+}
+
+/* =============================
+   中央寄せ
+============================= */
+.request-list__inner {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* =============================
+   見出し
+============================= */
+.request-list__heading {
+    margin-bottom: 36px;
+}
+
+.request-list__title {
+    margin: 0;
+    padding-left: 16px;
+    border-left: 8px solid #000000;
+    color: #000000;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+/* =============================
+   タブ
+============================= */
+.request-list__tabs {
+    display: flex;
+    gap: 56px;
+    margin-bottom: 22px;
+    padding: 0 18px 14px;
+    border-bottom: 1px solid #000000;
+    box-sizing: border-box;
+}
+
+.request-list__tab {
+    position: relative;
+    color: #000000;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.request-list__tab--active::after {
+    position: absolute;
+    right: 0;
+    bottom: -15px;
+    left: 0;
+    height: 2px;
+    background: #000000;
+    content: '';
+}
+
+/* =============================
+   テーブル外枠
+============================= */
+.request-list__table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #d9d9d9;
+    border-radius: 10px;
+    background: #ffffff;
+    box-sizing: border-box;
+}
+
+/* =============================
+   テーブル
+============================= */
+.request-list__table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    background: #ffffff;
+}
+
+/* =============================
+   ヘッダー行
+============================= */
+.request-list__table-row--head {
+    background: #ffffff;
+}
+
+.request-list__head-cell {
+    padding: 16px 12px;
+    border-bottom: 1px solid #d9d9d9;
+    color: #737373;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+    text-align: center;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+/* =============================
+   本文行
+============================= */
+.request-list__body-cell {
+    padding: 14px 12px;
+    border-bottom: 1px solid #e5e5e5;
+    color: #000000;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+    text-align: center;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+.request-list__table-body .request-list__table-row:last-child .request-list__body-cell {
+    border-bottom: none;
+}
+
+/* =============================
+   詳細リンク
+============================= */
+.request-list__body-cell--detail {
+    font-weight: 700;
+}
+
+.request-list__detail-link {
+    color: #000000;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+/* =============================
+   データなし
+============================= */
+.request-list__empty {
+    padding: 28px 16px;
+    color: #737373;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+/* =============================
+   タブレット
+============================= */
+@media screen and (min-width: 768px) and (max-width: 850px) {
+    .request-list {
+        padding: 40px 24px 64px;
+    }
+
+    .request-list__title {
+        font-size: 28px;
+    }
+
+    .request-list__tabs {
+        gap: 40px;
+        padding: 0 12px 12px;
+    }
+
+    .request-list__tab {
+        font-size: 15px;
+    }
+
+    .request-list__tab--active::after {
+        bottom: -13px;
+    }
+
+    .request-list__head-cell,
+    .request-list__body-cell {
+        padding: 14px 8px;
+        font-size: 11px;
+    }
+
+    .request-list__empty {
+        font-size: 13px;
+    }
+}

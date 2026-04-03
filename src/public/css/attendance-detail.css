@@ -1,0 +1,480 @@
+/* =============================
+   ページ全体
+   - 時刻欄と日付欄で同じ横基準を使えるように
+     共通変数をここで管理する
+============================= */
+.attendance-detail {
+    --time-input-width: 110px;
+    --time-gap: 32px;
+    --time-separator-width: 20px;
+    --time-group-width: calc((var(--time-input-width) * 2) + (var(--time-gap) * 2) + var(--time-separator-width));
+
+    min-height: calc(100vh - 80px);
+    padding: 54px 20px 80px;
+    background: #e1e1e1;
+}
+
+/* =============================
+   中央寄せ
+============================= */
+.attendance-detail__inner {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* =============================
+   見出し
+============================= */
+.attendance-detail__heading {
+    margin-bottom: 72px;
+}
+
+.attendance-detail__title {
+    margin: 0;
+    padding-left: 16px;
+    border-left: 8px solid #000000;
+    color: #000000;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+/* =============================
+   カード全体
+============================= */
+.attendance-detail__card {
+    width: 100%;
+}
+
+/* =============================
+   フォーム全体
+============================= */
+.attendance-detail__form-wrap {
+    width: 100%;
+}
+
+.attendance-detail__form {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #ffffff;
+}
+
+/* =============================
+   1行共通
+   - 左: ラベル列
+   - 右: 値列
+============================= */
+.attendance-detail__row {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    align-items: center;
+    min-height: 96px;
+    padding: 0 64px;
+    border-bottom: 1px solid #e1e1e1;
+    box-sizing: border-box;
+}
+
+/* =============================
+   備考行
+============================= */
+.attendance-detail__row--note {
+    align-items: start;
+    padding-top: 16px;
+    padding-bottom: 8px;
+}
+
+/* =============================
+   左ラベル
+============================= */
+.attendance-detail__label {
+    color: #737373;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+/* =============================
+   右側共通
+============================= */
+.attendance-detail__value {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+/* =============================
+   名前
+   - 名前だけ少し右へ寄せる
+============================= */
+.attendance-detail__value--text {
+    width: var(--time-group-width);
+    padding-left: 26px;
+    box-sizing: border-box;
+    color: #000000;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/* =============================
+   日付
+   - 年と月日を、開始時刻欄 / 終了時刻欄と
+     同じ横基準でセンタリングする
+============================= */
+.attendance-detail__value--date {
+    display: inline-flex;
+    align-items: center;
+    width: var(--time-group-width);
+    color: #000000;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.attendance-detail__date-part {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.attendance-detail__date-part--year {
+    width: var(--time-input-width);
+    margin-right: calc((var(--time-gap) * 2) + var(--time-separator-width));
+}
+
+.attendance-detail__date-part--day {
+    width: var(--time-input-width);
+}
+
+/* =============================
+   時刻入力エリア共通
+============================= */
+.attendance-detail__value--time {
+    width: 100%;
+    justify-content: flex-start;
+}
+
+.attendance-detail__value--time-with-error,
+.attendance-detail__value--break {
+    width: 100%;
+}
+
+/* =============================
+   編集可能画面の時刻ブロック
+   - relative にして error-area の基準にする
+============================= */
+.attendance-detail__time-block,
+.attendance-detail__break-block {
+    position: relative;
+    width: 100%;
+    min-height: 96px;
+    box-sizing: border-box;
+}
+
+/* =============================
+   編集可能画面の時刻グループ
+   - 行の中央に固定配置する
+============================= */
+.attendance-detail__time-block .attendance-detail__time-group,
+.attendance-detail__break-block .attendance-detail__time-group {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    width: var(--time-group-width);
+    gap: var(--time-gap);
+}
+
+/* =============================
+   承認待ち画面の時刻グループ
+   - absolute にせず通常配置にする
+============================= */
+.attendance-detail__time-group--readonly {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    width: var(--time-group-width);
+    gap: var(--time-gap);
+}
+
+/* =============================
+   時刻入力
+============================= */
+.attendance-detail__time-input {
+    width: var(--time-input-width);
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #000000;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+.attendance-detail__time-input::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
+}
+
+.attendance-detail__time-input::-webkit-clear-button {
+    display: none;
+}
+
+.attendance-detail__time-input::-webkit-inner-spin-button {
+    display: none;
+}
+
+/* =============================
+   承認待ち画面の時刻文字
+============================= */
+.attendance-detail__time-text {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--time-input-width);
+    color: #000000;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* =============================
+   区切り記号
+============================= */
+.attendance-detail__separator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--time-separator-width);
+    color: #000000;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* =============================
+   備考
+   - 幅を時刻2欄ぶんにそろえる
+============================= */
+.attendance-detail__value--note {
+    align-items: flex-start;
+    width: 100%;
+}
+
+.attendance-detail__note-block {
+    position: relative;
+    width: var(--time-group-width);
+    padding-bottom: 16px;
+    box-sizing: border-box;
+}
+
+.attendance-detail__note-input {
+    width: 100%;
+    min-height: 80px;
+    padding: 10px 12px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #000000;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.5;
+    resize: none;
+    box-sizing: border-box;
+}
+
+.attendance-detail__note-text {
+    width: var(--time-group-width);
+    min-height: 80px;
+    padding: 10px 12px;
+    color: #000000;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.5;
+    box-sizing: border-box;
+}
+
+/* =============================
+   エラー表示共通
+============================= */
+.attendance-detail__error-area {
+    min-height: 0;
+}
+
+.attendance-detail__error {
+    margin: 0;
+    color: #ff5555;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+/* =============================
+   時刻エラー
+   - フィールドと下線の間に表示する
+   - 行の高さは変えない
+============================= */
+.attendance-detail__error-area--time {
+    position: absolute;
+    left: 0;
+    bottom: 6px;
+    display: grid;
+    grid-template-columns: var(--time-input-width) var(--time-separator-width) var(--time-input-width);
+    column-gap: var(--time-gap);
+    width: var(--time-group-width);
+}
+
+.attendance-detail__time-error--start {
+    grid-column: 1;
+}
+
+.attendance-detail__time-error--end {
+    grid-column: 3;
+}
+
+.attendance-detail__time-error .attendance-detail__error {
+    margin: 0;
+    white-space: nowrap;
+}
+
+.attendance-detail__error-area--break {
+    position: absolute;
+    left: 0;
+    bottom: 6px;
+}
+
+/* =============================
+   備考エラー
+============================= */
+.attendance-detail__error-area--note {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* =============================
+   ボタン
+============================= */
+.attendance-detail__actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 18px;
+}
+
+.attendance-detail__submit-button {
+    min-width: 130px;
+    height: 50px;
+    padding: 0 24px;
+    border: none;
+    border-radius: 5px;
+    background: #000000;
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* =============================
+   承認待ちメッセージ
+============================= */
+.attendance-detail__pending-message {
+    margin: 18px 8px 0 0;
+    color: #ff5f5f;
+    font-size: 18px;
+    font-weight: 700;
+    text-align: right;
+}
+
+/* =============================
+   タブレット
+   - 右カラム内で見た目が左に寄らないように調整する
+============================= */
+@media screen and (min-width: 768px) and (max-width: 850px) {
+    .attendance-detail {
+        --time-input-width: 96px;
+        --time-gap: 20px;
+        --time-separator-width: 18px;
+
+        padding: 44px 24px 64px;
+    }
+
+    .attendance-detail__heading {
+        margin-bottom: 56px;
+    }
+
+    .attendance-detail__title {
+        font-size: 28px;
+    }
+
+    .attendance-detail__row {
+        grid-template-columns: 130px 1fr;
+        min-height: 88px;
+        padding: 0 24px;
+    }
+
+    .attendance-detail__row--note {
+        padding-top: 16px;
+        padding-bottom: 16px;
+    }
+
+    /* 名前 / 日付の箱自体を中央寄せする */
+    .attendance-detail__value--text,
+    .attendance-detail__value--date {
+        justify-self: center;
+    }
+
+    /* 時刻系は右カラム内で中央寄せする */
+    .attendance-detail__value--time {
+        justify-content: center;
+    }
+
+    .attendance-detail__time-block,
+    .attendance-detail__break-block {
+        width: var(--time-group-width);
+        min-height: 88px;
+    }
+
+    /* 備考も中央寄せする */
+    .attendance-detail__note-block,
+    .attendance-detail__note-text {
+        margin: 0 auto;
+    }
+
+    .attendance-detail__label,
+    .attendance-detail__value--text,
+    .attendance-detail__value--date,
+    .attendance-detail__time-input,
+    .attendance-detail__time-text,
+    .attendance-detail__separator {
+        font-size: 15px;
+    }
+
+    .attendance-detail__note-input,
+    .attendance-detail__note-text,
+    .attendance-detail__error {
+        font-size: 13px;
+    }
+
+    .attendance-detail__submit-button {
+        min-width: 120px;
+        height: 46px;
+        font-size: 20px;
+    }
+
+    .attendance-detail__pending-message {
+        font-size: 16px;
+    }
+}

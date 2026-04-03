@@ -41,4 +41,16 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    // ユーザーに紐づく勤怠一覧
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    // ユーザーに紐づく打刻修正申請一覧
+    public function stampCorrectionRequests()
+    {
+        return $this->hasMany(StampCorrectionRequest::class);
+    }
 }

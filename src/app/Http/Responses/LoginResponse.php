@@ -16,6 +16,6 @@ class LoginResponse implements LoginResponseContract
             // return redirect()->route('verification.guide');
         }
 
-        return redirect()->intended(route('items.index'));
+        return redirect()->intended(route('attendance.index'));
     }
 }

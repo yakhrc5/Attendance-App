@@ -33,9 +33,6 @@ class CreateStampCorrectionRequestsTable extends Migration
             $table->dateTime('requested_clock_out_at')->nullable();
             $table->text('reason');
 
-            $table->unsignedTinyInteger('status')
-                ->comment('0:承認待ち 1:承認済み');
-
             $table->timestamp('approved_at')->nullable();
 
             $table->timestamps();

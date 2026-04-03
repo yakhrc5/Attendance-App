@@ -7,38 +7,58 @@
 @endsection
 
 @section('content')
-@php
-// 画面表示用の初期値
-// コントローラーから値が渡されたら、その値を優先して表示する
-$statusLabel = $statusLabel ?? '勤務外';
-$currentDate = $currentDate ?? '2023年6月1日(木)';
-$currentTime = $currentTime ?? '08:00';
-$actionLabel = $actionLabel ?? '出勤';
-@endphp
-
 <section class="attendance">
     <div class="attendance__inner">
-        {{-- 見た目には出さないが、見出し構造は保持する --}}
-        <h1 class="visually-hidden">勤怠登録</h1>
+        <div class="attendance__content">
+            <h1 class="visually-hidden">勤怠登録</h1>
 
-        {{-- 勤務状態 --}}
-        <p class="attendance__status">{{ $statusLabel }}</p>
+            {{-- ステータス表示 --}}
+            <p class="attendance__status">{{ $statusLabel }}</p>
 
-        {{-- 日付 --}}
-        <p class="attendance__date">{{ $currentDate }}</p>
+            {{-- 日付表示 --}}
+            <p class="attendance__date">{{ $currentDate }}</p>
 
-        {{-- 時刻 --}}
-        <p class="attendance__time">{{ $currentTime }}</p>
+            {{-- 時刻表示 --}}
+            <p class="attendance__time">{{ $currentTime }}</p>
 
-        {{-- 打刻ボタン --}}
-        {{-- ※ action先は仮です。実際のルーティングに合わせて調整してください --}}
-        <form action="{{ url('/attendance') }}" method="POST" class="attendance__form">
-            @csrf
+            {{-- ボタン表示エリア --}}
+            <div class="attendance__actions">
+                {{-- 勤務外：出勤ボタン --}}
+                @if($showClockIn)
+                <form class="attendance__form" action="{{ route('attendance.clock-in') }}" method="POST">
+                    @csrf
+                    <button class="attendance__button attendance__button--primary" type="submit">出勤</button>
+                </form>
+                @endif
 
-            <button type="submit" class="attendance__button">
-                {{ $actionLabel }}
-            </button>
-        </form>
+                @if($showClockOut)
+                <form class="attendance__form" action="{{ route('attendance.clock-out') }}" method="POST">
+                    @csrf
+                    <button class="attendance__button attendance__button--primary" type="submit">退勤</button>
+                </form>
+                @endif
+
+                {{-- 休憩中：休憩戻ボタン --}}
+                @if($showBreakStart)
+                <form class="attendance__form" action="{{ route('attendance.break-start') }}" method="POST">
+                    @csrf
+                    <button class="attendance__button attendance__button--secondary" type="submit">休憩入</button>
+                </form>
+                @endif
+
+                @if($showBreakEnd)
+                <form class="attendance__form" action="{{ route('attendance.break-end') }}" method="POST">
+                    @csrf
+                    <button class="attendance__button attendance__button--secondary" type="submit">休憩戻</button>
+                </form>
+                @endif
+
+                {{-- 退勤後メッセージ --}}
+                @if($statusLabel === '退勤済')
+                <p class="attendance__message">お疲れ様でした。</p>
+                @endif
+            </div>
+        </div>
     </div>
 </section>
 @endsection
