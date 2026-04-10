@@ -20,19 +20,9 @@ class CreateStampCorrectionRequestsTable extends Migration
                 ->constrained('attendances')
                 ->cascadeOnDelete();
 
-            $table->foreignId('user_id')
-                ->constrained()
-                ->cascadeOnDelete();
-
-            $table->foreignId('approved_by_admin_id')
-                ->nullable()
-                ->constrained('admins')
-                ->nullOnDelete();
-
             $table->dateTime('requested_clock_in_at')->nullable();
             $table->dateTime('requested_clock_out_at')->nullable();
             $table->text('reason');
-
             $table->timestamp('approved_at')->nullable();
 
             $table->timestamps();

@@ -288,6 +288,7 @@
     border-radius: 4px;
     background: #ffffff;
     color: #000000;
+    font-family: inherit;
     font-size: 14px;
     font-weight: 700;
     line-height: 1.5;
@@ -380,6 +381,7 @@
     padding: 0 24px;
     border: none;
     border-radius: 5px;
+    font-family: inherit;
     background: #000000;
     color: #ffffff;
     font-size: 22px;
@@ -470,6 +472,7 @@
 
     .attendance-detail__submit-button {
         min-width: 120px;
+        font-family: inherit;
         height: 46px;
         font-size: 20px;
     }

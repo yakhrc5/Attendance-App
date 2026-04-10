@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'ログイン')
+@section('title', '管理者ログイン')
 
 @section('css')
 <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
@@ -9,11 +9,16 @@
 @section('content')
 <div class="auth">
     <div class="auth__container">
-        <h1 class="auth__title">ログイン</h1>
+        <h1 class="auth__title">管理者ログイン</h1>
 
         <form method="POST" action="{{ route('login') }}" class="auth__form" novalidate>
             @csrf
-            <input type="hidden" name="role" value="user">
+
+            {{--
+                Fortify 側で一般ユーザー / 管理者を判別するための hidden
+                管理者ログイン画面からは role=admin を送る
+            --}}
+            <input type="hidden" name="role" value="admin">
 
             {{-- メールアドレス --}}
             <div class="auth__field">
@@ -52,13 +57,11 @@
                     @enderror
                 </div>
             </div>
-            {{-- ログインボタン --}}
-            <button type="submit" class="auth__btn auth__btn--login">ログインする</button>
 
-            {{-- 会員登録リンク --}}
-            <p class="auth__link">
-                <a href="{{ route('register') }}" class="auth__link-anchor">会員登録はこちら</a>
-            </p>
+            {{-- 管理者ログインボタン --}}
+            <button type="submit" class="auth__btn auth__btn--login">
+                管理者ログインする
+            </button>
         </form>
     </div>
 </div>

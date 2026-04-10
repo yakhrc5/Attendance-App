@@ -1,0 +1,10 @@
+/* =============================
+   管理者用 修正申請承認画面
+============================= */
+.attendance-detail__submit-button--approved {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #696969;
+    cursor: default;
+}

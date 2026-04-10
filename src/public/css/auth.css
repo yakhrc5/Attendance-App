@@ -77,7 +77,7 @@ common.css の .layout__main に余白があるため、
     padding-top: 4px;
     box-sizing: border-box;
     font-size: 16px;
-    color: #000000;
+    color: #ff5555;
 }
 
 .auth__error {
@@ -106,7 +106,7 @@ common.css の .layout__main に余白があるため、
 }
 
 .auth__btn--register {
-    margin-top: 88px;
+    margin-top: 50px;
 }
 
 /* ログインボタン hover */

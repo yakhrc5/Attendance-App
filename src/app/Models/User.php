@@ -6,11 +6,14 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory, Notifiable;
+
+    // 役割を表す定数
+    public const ROLE_ADMIN = 1;
+    public const ROLE_USER = 2;
 
     /**
      * The attributes that are mass assignable.
@@ -20,6 +23,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $fillable = [
         'name',
         'email',
+        'role',
         'password',
     ];
 
@@ -39,6 +43,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array<string, string>
      */
     protected $casts = [
+        'role' => 'integer',
         'email_verified_at' => 'datetime',
     ];
 
@@ -48,9 +53,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Attendance::class);
     }
 
-    // ユーザーに紐づく打刻修正申請一覧
-    public function stampCorrectionRequests()
+    // 管理者かどうかを判定する
+    public function isAdmin(): bool
     {
-        return $this->hasMany(StampCorrectionRequest::class);
+        return $this->role === self::ROLE_ADMIN;
     }
 }

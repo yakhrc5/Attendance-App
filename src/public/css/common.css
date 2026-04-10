@@ -39,13 +39,16 @@ body {
 
 /* ロゴ領域 */
 .header__logo {
-    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    line-height: 1;
 }
 
 /* ロゴリンク */
 .header__logo-link {
-    display: inline-flex;
+    display: flex;
     align-items: center;
+    line-height: 1;
     text-decoration: none;
 }
 
@@ -77,10 +80,14 @@ body {
 }
 
 .header__logout-form {
+    display: flex;
+    align-items: center;
     margin: 0;
+    line-height: 1;
 }
 
 .header__nav-button {
+    display: block;
     padding: 0;
     border: none;
     background: transparent;

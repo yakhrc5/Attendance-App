@@ -49,7 +49,11 @@
                         <td class="request-list__body-cell">{{ $requestItem['statusLabel'] }}</td>
                         <td class="request-list__body-cell">{{ $requestItem['userName'] }}</td>
                         <td class="request-list__body-cell">{{ $requestItem['workDate'] }}</td>
-                        <td class="request-list__body-cell">{{ $requestItem['reason'] }}</td>
+                        <td
+                            class="request-list__body-cell request-list__body-cell--reason"
+                            title="{{ $requestItem['reason'] }}">
+                            {{ $requestItem['reason'] }}
+                        </td>
                         <td class="request-list__body-cell">{{ $requestItem['appliedAt'] }}</td>
                         <td class="request-list__body-cell request-list__body-cell--detail">
                             @if (!empty($requestItem['detailUrl']))

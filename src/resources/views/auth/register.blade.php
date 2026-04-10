@@ -14,9 +14,9 @@
         <form method="POST" action="{{ route('register') }}" class="auth__form" novalidate>
             @csrf
 
-            {{-- ユーザー名 --}}
+            {{-- 名前 --}}
             <div class="auth__field">
-                <label class="auth__label" for="name">ユーザー名</label>
+                <label class="auth__label" for="name">名前</label>
                 <input
                     id="name"
                     type="text"
@@ -68,9 +68,9 @@
                 </div>
             </div>
 
-            {{-- 確認用パスワード --}}
+            {{-- パスワード確認 --}}
             <div class="auth__field">
-                <label class="auth__label" for="password_confirmation">確認用パスワード</label>
+                <label class="auth__label" for="password_confirmation">パスワード確認</label>
                 <input
                     id="password_confirmation"
                     type="password"

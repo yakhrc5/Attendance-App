@@ -25,12 +25,13 @@ class CreateNewUser implements CreatesNewUsers
             $input,
             $request->rules(),
             $request->messages(),
-            method_exists($request, 'attributes') ? $request->attributes() : []
         )->validate();
 
+        // 一般ユーザー登録画面から作成されるユーザーは role=user で固定する
         return User::create([
             'name' => $input['name'],
             'email' => $input['email'],
+            'role' => 'user',
             'password' => Hash::make($input['password']),
         ]);
     }

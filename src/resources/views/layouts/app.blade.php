@@ -27,8 +27,12 @@
     'login',
     'register',
     'verification.notice',
-    'verification.verify'
+    'verification.verify',
+    'admin.login'
     );
+
+    // 管理者ログイン中かどうかを判定する
+    $isAdminUser = auth()->check() && auth()->user()->role === 'admin';
 
     // default: 通常ログイン後
     // after_clock_out: 退勤後
@@ -40,7 +44,7 @@
         <div class="header__inner">
             {{-- ロゴ --}}
             <div class="header__logo">
-                <a href="{{ url('/') }}" class="header__logo-link" aria-label="トップへ">
+                <a href="{{ route('login') }}" class="header__logo-link" aria-label="トップへ">
                     <img
                         src="{{ asset('images/logo.png') }}"
                         alt="COACHTECH"
@@ -50,14 +54,27 @@
 
             {{-- 認証系画面以外ではナビゲーションを表示 --}}
             @unless($isAuthHeader)
+            @auth
             <nav class="header__nav" aria-label="グローバルナビゲーション">
-                @auth
+                @if ($isAdminUser)
+                {{-- 管理者ヘッダー --}}
+                <a href="{{ route('admin.attendance.list') }}" class="header__nav-link">
+                    勤怠一覧
+                </a>
+                <a href="{{ route('admin.staff.list') }}" class="header__nav-link">
+                    スタッフ一覧
+                </a>
+                <a href="{{ route('stamp_correction_request.list') }}" class="header__nav-link">
+                    申請一覧
+                </a>
+                @else
+                {{-- 一般ユーザー --}}
                 @if ($headerMode === 'after_clock_out')
                 {{-- 退勤後ヘッダー --}}
                 <a href="{{ route('attendance.list') }}" class="header__nav-link">
                     今月の出勤一覧
                 </a>
-                <a href="{{ url('/stamp_correction_request/list') }}" class="header__nav-link">
+                <a href="{{ route('stamp_correction_request.list') }}" class="header__nav-link">
                     申請一覧
                 </a>
                 @else
@@ -68,21 +85,19 @@
                 <a href="{{ route('attendance.list') }}" class="header__nav-link">
                     勤怠一覧
                 </a>
-                <a href="{{ url('/stamp_correction_request/list') }}" class="header__nav-link">
+                <a href="{{ route('stamp_correction_request.list') }}" class="header__nav-link">
                     申請
                 </a>
                 @endif
+                @endif
 
+                {{-- ログアウトボタン（管理者・一般共通） --}}
                 <form action="{{ route('logout') }}" method="POST" class="header__logout-form">
                     @csrf
                     <button type="submit" class="header__nav-button">ログアウト</button>
                 </form>
-                @endauth
-
-                @guest
-                <a href="{{ route('login') }}" class="header__nav-link">ログイン</a>
-                @endguest
             </nav>
+            @endauth
             @endunless
         </div>
     </header>

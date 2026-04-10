@@ -1,0 +1,198 @@
+/* ================================
+   スタッフ一覧画面全体
+================================ */
+.admin-staff-list {
+    min-height: calc(100vh - 80px);
+    padding: 91px 24px 80px;
+    box-sizing: border-box;
+    background-color: #f0eff2;
+}
+
+/* ================================
+   画面内側のレイアウト
+================================ */
+.admin-staff-list__inner {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* ================================
+   見出しエリア
+================================ */
+.admin-staff-list__heading {
+    margin-bottom: 48px;
+}
+
+/* 見出し */
+.admin-staff-list__title {
+    margin: 0;
+    padding-left: 18px;
+    border-left: 8px solid #000000;
+    color: #000000;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+/* ================================
+   テーブル外枠
+================================ */
+.admin-staff-list__table-wrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    background-color: #ffffff;
+}
+
+/* ================================
+   テーブル本体
+================================ */
+.admin-staff-list__table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: collapse;
+    background-color: #ffffff;
+}
+
+/* ================================
+   ヘッダー行
+================================ */
+.admin-staff-list__head-row {
+    border-bottom: 1px solid #e1e1e1;
+}
+
+/* ================================
+   ヘッダーセル
+================================ */
+.admin-staff-list__head-cell {
+    padding: 16px 12px;
+    color: #737373;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.3;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.admin-staff-list__head-cell--name {
+    width: 28%;
+}
+
+.admin-staff-list__head-cell--email {
+    width: 52%;
+}
+
+.admin-staff-list__head-cell--detail {
+    width: 20%;
+}
+
+/* ================================
+   データ行
+================================ */
+.admin-staff-list__row {
+    border-bottom: 1px solid #e1e1e1;
+}
+
+.admin-staff-list__row:last-child {
+    border-bottom: none;
+}
+
+/* ================================
+   データセル
+================================ */
+.admin-staff-list__cell {
+    padding: 16px 12px;
+    color: #737373;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.3;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.admin-staff-list__cell--empty {
+    padding: 32px 12px;
+}
+
+/* ================================
+   詳細リンク
+================================ */
+.admin-staff-list__detail-link {
+    display: inline-block;
+    color: #000000;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+/* ================================
+   PC幅微調整
+   1400px - 1540px
+================================ */
+@media screen and (min-width: 1400px) and (max-width: 1540px) {
+    .admin-staff-list {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+}
+
+/* ================================
+   タブレット対応
+   768px - 850px
+================================ */
+@media screen and (min-width: 768px) and (max-width: 850px) {
+    .admin-staff-list {
+        min-height: calc(100vh - 72px);
+        padding: 48px 20px 64px;
+    }
+
+    .admin-staff-list__heading {
+        margin-bottom: 40px;
+    }
+
+    .admin-staff-list__title {
+        padding-left: 14px;
+        border-left-width: 6px;
+        font-size: 26px;
+    }
+
+    .admin-staff-list__table {
+        min-width: 760px;
+    }
+
+    .admin-staff-list__head-cell,
+    .admin-staff-list__cell {
+        padding: 14px 10px;
+        font-size: 14px;
+    }
+}
+
+/* ================================
+   スマホ対応
+   767px以下
+================================ */
+@media screen and (max-width: 767px) {
+    .admin-staff-list {
+        min-height: calc(100vh - 64px);
+        padding: 32px 16px 48px;
+    }
+
+    .admin-staff-list__heading {
+        margin-bottom: 32px;
+    }
+
+    .admin-staff-list__title {
+        padding-left: 12px;
+        border-left-width: 5px;
+        font-size: 22px;
+    }
+
+    .admin-staff-list__table {
+        min-width: 680px;
+    }
+
+    .admin-staff-list__head-cell,
+    .admin-staff-list__cell {
+        padding: 12px 8px;
+        font-size: 13px;
+    }
+}

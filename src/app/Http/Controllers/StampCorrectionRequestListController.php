@@ -4,60 +4,121 @@ namespace App\Http\Controllers;
 
 use App\Models\StampCorrectionRequest;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class StampCorrectionRequestListController extends Controller
 {
-    // 一般ユーザーの申請一覧画面を表示する
-    public function index(Request $request): View
+    /**
+     * 申請一覧画面
+     * - 一般ユーザー: 自分が行った修正申請のみ表示する
+     * - 管理者: 全一般ユーザーの修正申請のみ表示する
+     */
+    public function index(): View
     {
-        // タブは pending / approved の2種類だけ受け付ける
-        $currentStatus = $request->query('status', 'pending');
+        // ログイン中ユーザーを取得する
+        $loginUser = Auth::user();
 
-        if (!in_array($currentStatus, ['pending', 'approved'], true)) {
-            $currentStatus = 'pending';
+        // 現在表示するステータスタブを取得する
+        // 指定がなければ「承認待ち」を初期表示にする
+        $currentStatus = request('status', 'pending');
+
+        // 修正申請一覧の取得クエリを作る
+        // 一覧表示で使うユーザー情報と勤怠情報を一緒に読み込む
+        // 申請一覧には「一般ユーザーが出した申請」だけを表示対象にする
+        $query = StampCorrectionRequest::query()
+            ->with([
+                'user',
+                'attendance',
+            ])
+            ->where('request_source', StampCorrectionRequest::SOURCE_USER_REQUEST);
+
+        // 一般ユーザーは自分の申請だけ表示する
+        if ($loginUser->role === 'user') {
+            $query->where('user_id', $loginUser->id);
         }
 
-        // ログインユーザー本人の申請だけを取得する
-        $requestsQuery = StampCorrectionRequest::query()
-            ->with('attendance')
-            ->where('user_id', Auth::id())
-            ->orderByDesc('created_at');
-
-        // タブに応じて未承認 / 承認済みを切り替える
-        if ($currentStatus === 'pending') {
-            $requestsQuery->whereNull('approved_at');
+        // タブの状態に応じて承認待ち / 承認済み を切り替える
+        if ($currentStatus === 'approved') {
+            $query->whereNotNull('approved_at');
         } else {
-            $requestsQuery->whereNotNull('approved_at');
+            $query->whereNull('approved_at');
         }
 
-        $userName = Auth::user()->name;
+        // 新しい申請順で取得する
+        $stampCorrectionRequests = $query
+            ->latest()
+            ->get();
 
-        // 画面で使いやすい表示用データに整える
-        $requests = $requestsQuery->get()->map(function (StampCorrectionRequest $stampCorrectionRequest) use ($userName): array {
-            $workDate = '';
+        // Blade で扱いやすい表示用データに整形する
+        $requests = $stampCorrectionRequests->map(function (
+            StampCorrectionRequest $stampCorrectionRequest
+        ) use ($loginUser): array {
+            // 対象勤怠日を表示用に整形する
+            $workDate = $stampCorrectionRequest->attendance
+                ? $this->formatWorkDate($stampCorrectionRequest->attendance->work_date)
+                : '';
 
-            if (!empty($stampCorrectionRequest->attendance?->work_date)) {
-                $workDate = Carbon::parse($stampCorrectionRequest->attendance->work_date)->format('Y/m/d');
+            // 申請日時を表示用に整形する
+            $appliedAt = $stampCorrectionRequest->created_at
+                ? $stampCorrectionRequest->created_at->format('Y/m/d')
+                : '';
+
+            // 一般ユーザーは既存の勤怠詳細画面へ遷移する
+            if ($loginUser->role === 'user') {
+                $detailUrl = route('attendance.detail', [
+                    'id' => $stampCorrectionRequest->attendance_id,
+                ]);
+            } else {
+                // 管理者は修正申請承認画面へ遷移する
+                $detailUrl = route('admin.stamp_correction_request.approve', [
+                    'id' => $stampCorrectionRequest->id,
+                ]);
             }
 
             return [
-                'statusLabel' => is_null($stampCorrectionRequest->approved_at) ? '承認待ち' : '承認済み',
-                'userName' => $userName,
+                // 承認状態ラベル
+                'statusLabel' => is_null($stampCorrectionRequest->approved_at)
+                    ? '承認待ち'
+                    : '承認済み',
+
+                // 申請者名
+                'userName' => $stampCorrectionRequest->user->name ?? '',
+
+                // 対象日時
                 'workDate' => $workDate,
+
+                // 申請理由
                 'reason' => $stampCorrectionRequest->reason,
-                'appliedAt' => optional($stampCorrectionRequest->created_at)->format('Y/m/d'),
-                'detailUrl' => !empty($stampCorrectionRequest->attendance_id)
-                    ? route('attendance.detail', ['id' => $stampCorrectionRequest->attendance_id])
-                    : '',
+
+                // 申請日時
+                'appliedAt' => $appliedAt,
+
+                // 詳細リンク
+                'detailUrl' => $detailUrl,
             ];
         });
 
+        // 共通 Blade を表示する
         return view('stamp_correction_requests.index', [
             'currentStatus' => $currentStatus,
             'requests' => $requests,
         ]);
+    }
+
+    /**
+     * 対象勤怠日を Y/m/d 形式に整形する
+     *
+     * @param \Carbon\Carbon|string $workDate
+     */
+    private function formatWorkDate($workDate): string
+    {
+        // Carbon インスタンスならそのまま整形する
+        if ($workDate instanceof Carbon) {
+            return $workDate->format('Y/m/d');
+        }
+
+        // 文字列なら Carbon に変換して整形する
+        return Carbon::parse($workDate)->format('Y/m/d');
     }
 }

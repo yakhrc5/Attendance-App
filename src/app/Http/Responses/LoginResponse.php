@@ -10,12 +10,12 @@ class LoginResponse implements LoginResponseContract
     {
         $user = $request->user();
 
-        if ($user && ! $user->hasVerifiedEmail()) {
-            // 誘導画面のルート名に合わせる
-            return redirect()->route('verification.notice');
-            // return redirect()->route('verification.guide');
+        // 管理者は管理画面へ遷移させる
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.attendance.list');
         }
 
-        return redirect()->intended(route('attendance.index'));
+        // 一般ユーザーは勤怠打刻画面へ遷移させる
+        return redirect()->route('attendance.index');
     }
 }
