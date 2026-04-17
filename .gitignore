@@ -1,2 +1,3 @@
 docker/mysql/data/src/.env
 src/.env
+src/.env.testing
