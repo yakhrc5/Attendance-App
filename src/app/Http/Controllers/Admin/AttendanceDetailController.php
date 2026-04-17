@@ -131,12 +131,9 @@ class AttendanceDetailController extends Controller
             // 管理者が直接修正した履歴を作成する
             $stampCorrectionRequest = StampCorrectionRequest::create([
                 'attendance_id' => $attendance->id,
-                'user_id' => $attendance->user_id,
-                'request_source' => StampCorrectionRequest::SOURCE_ADMIN_DIRECT,
                 'requested_clock_in_at' => $updatedClockInAt,
                 'requested_clock_out_at' => $updatedClockOutAt,
                 'reason' => $validated['reason'],
-                'approved_by_admin_id' => auth()->id(),
                 'approved_at' => now(),
             ]);
 

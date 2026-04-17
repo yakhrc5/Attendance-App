@@ -22,7 +22,10 @@ class AdminMiddleware
         }
 
         // 一般ユーザーなら一般ユーザー側トップへ
-        if (auth()->user()->role !== 'admin') {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        if ($user->isUser()) {
             return redirect()->route('attendance.index');
         }
 

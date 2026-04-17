@@ -98,19 +98,11 @@
                             {{ $row['workTime'] }}
                         </td>
                         <td class="admin-attendance-list__cell admin-attendance-list__cell--detail">
-                            @if (!empty($row['detailUrl']))
                             <a
                                 class="admin-attendance-list__detail-link"
                                 href="{{ $row['detailUrl'] }}">
                                 詳細
                             </a>
-                            @else
-                            <span
-                                class="admin-attendance-list__detail-link admin-attendance-list__detail-link--disabled"
-                                aria-disabled="true">
-                                詳細
-                            </span>
-                            @endif
                         </td>
                     </tr>
                     @empty

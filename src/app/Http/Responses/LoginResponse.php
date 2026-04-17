@@ -11,7 +11,7 @@ class LoginResponse implements LoginResponseContract
         $user = $request->user();
 
         // 管理者は管理画面へ遷移させる
-        if ($user->role === 'admin') {
+        if ($user->isAdmin()) {
             return redirect()->route('admin.attendance.list');
         }
 

@@ -17,15 +17,10 @@ class AttendanceSeeder extends Seeder
     public function run()
     {
         // 一般ユーザーを取得する
-        // usersテーブルとadminsテーブルを分けている前提なので、usersのみ対象にする
         $users = User::query()
+            ->where('role', User::ROLE_USER)
             ->orderBy('id')
             ->get();
-
-        // 一般ユーザーがいない場合は何もしない
-        if ($users->isEmpty()) {
-            return;
-        }
 
         foreach ($users as $index => $user) {
             // ユーザーごとに少しずつ時刻をずらして、見た目で区別しやすくする

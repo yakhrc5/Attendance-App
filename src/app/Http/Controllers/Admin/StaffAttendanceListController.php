@@ -103,7 +103,7 @@ class StaffAttendanceListController extends Controller
     {
         // 管理者は除外し、一般ユーザーのみを対象にする
         return User::query()
-            ->where('role', 'user')
+            ->where('role', User::ROLE_USER)
             ->findOrFail($id);
     }
 

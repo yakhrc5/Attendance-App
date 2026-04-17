@@ -31,7 +31,7 @@ class UserSeeder extends Seeder
             ],
             [
                 'name' => '管理者',
-                'role' => 'admin',
+                'role' => User::ROLE_ADMIN,
                 'email_verified_at' => now(),
                 'password' => Hash::make('password123'),
             ]
@@ -59,7 +59,7 @@ class UserSeeder extends Seeder
                 ],
                 [
                     'name' => $user['name'],
-                    'role' => 'user',
+                    'role' => User::ROLE_USER,
                     'email_verified_at' => now(),
                     'password' => Hash::make('password123'),
                 ]

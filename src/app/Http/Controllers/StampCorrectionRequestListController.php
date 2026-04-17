@@ -6,17 +6,19 @@ use App\Models\StampCorrectionRequest;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use App\Models\User;
 
 class StampCorrectionRequestListController extends Controller
 {
     /**
      * 申請一覧画面
-     * - 一般ユーザー: 自分が行った修正申請のみ表示する
-     * - 管理者: 全一般ユーザーの修正申請のみ表示する
+     * - 一般ユーザー: 自分に紐づく修正申請のみ表示する
+     * - 管理者: 全一般ユーザーに紐づく修正申請を表示する
      */
     public function index(): View
     {
         // ログイン中ユーザーを取得する
+        /** @var \App\Models\User $loginUser */
         $loginUser = Auth::user();
 
         // 現在表示するステータスタブを取得する
@@ -24,18 +26,23 @@ class StampCorrectionRequestListController extends Controller
         $currentStatus = request('status', 'pending');
 
         // 修正申請一覧の取得クエリを作る
-        // 一覧表示で使うユーザー情報と勤怠情報を一緒に読み込む
-        // 申請一覧には「一般ユーザーが出した申請」だけを表示対象にする
+        // 一覧表示で使う勤怠情報とユーザー情報を一緒に読み込む
         $query = StampCorrectionRequest::query()
             ->with([
-                'user',
+                'attendance.user',
                 'attendance',
-            ])
-            ->where('request_source', StampCorrectionRequest::SOURCE_USER_REQUEST);
+            ]);
 
-        // 一般ユーザーは自分の申請だけ表示する
-        if ($loginUser->role === 'user') {
-            $query->where('user_id', $loginUser->id);
+        // 一般ユーザーは自分に紐づく申請だけ表示する
+        if ($loginUser->isUser()) {
+            $query->whereHas('attendance', function ($query) use ($loginUser) {
+                $query->where('user_id', $loginUser->id);
+            });
+        } else {
+            // 管理者は一般ユーザーに紐づく申請だけ表示する
+            $query->whereHas('attendance.user', function ($query) {
+                $query->where('role', User::ROLE_USER);
+            });
         }
 
         // タブの状態に応じて承認待ち / 承認済み を切り替える
@@ -65,7 +72,7 @@ class StampCorrectionRequestListController extends Controller
                 : '';
 
             // 一般ユーザーは既存の勤怠詳細画面へ遷移する
-            if ($loginUser->role === 'user') {
+            if ($loginUser->isUser()) {
                 $detailUrl = route('attendance.detail', [
                     'id' => $stampCorrectionRequest->attendance_id,
                 ]);
@@ -83,7 +90,7 @@ class StampCorrectionRequestListController extends Controller
                     : '承認済み',
 
                 // 申請者名
-                'userName' => $stampCorrectionRequest->user->name ?? '',
+                'userName' => $stampCorrectionRequest->attendance->user->name ?? '',
 
                 // 対象日時
                 'workDate' => $workDate,

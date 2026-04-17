@@ -20,25 +20,24 @@ class AttendanceListController extends Controller
         // 指定がない場合や不正な形式の場合は今日を採用する
         $targetDate = $this->resolveTargetDate($request->input('date'));
 
-        // 一般ユーザー一覧を取得する
-        // 管理者は含めず、名前順で並べる
-        $users = User::query()
-            ->where('role', 'user')
-            ->orderBy('name')
-            ->get(['id', 'name']);
-
-        // 対象日の勤怠データをまとめて取得する
-        // user_id をキーにして、あとで各ユーザーに対応する勤怠を取り出しやすくする
+        // 対象日の勤怠データを取得する
+        // 一般ユーザーの勤怠だけに絞り、名前順で並べる
         $attendances = Attendance::query()
-            ->with('attendanceBreaks')
+            ->with([
+                'user:id,name,role',
+                'attendanceBreaks',
+            ])
             ->whereDate('work_date', $targetDate->toDateString())
-            ->get()
-            ->keyBy('user_id');
+            ->whereHas('user', function ($query) {
+                $query->where('role', User::ROLE_USER);
+            })
+            ->join('users', 'attendances.user_id', '=', 'users.id')
+            ->orderBy('users.name')
+            ->select('attendances.*')
+            ->get();
 
         // Blade に渡す一覧表示用データを整形する
-        $attendanceRows = $users->map(function (User $user) use ($attendances) {
-            /** @var \App\Models\Attendance|null $attendance */
-            $attendance = $attendances->get($user->id);
+        $attendanceRows = $attendances->map(function (Attendance $attendance) {
 
             // 休憩秒数を計算する
             $breakSeconds = $this->calculateBreakSeconds($attendance);
@@ -48,7 +47,7 @@ class AttendanceListController extends Controller
 
             return [
                 // スタッフ名
-                'staffName' => $user->name,
+                'staffName' => $attendance->user->name,
 
                 // 出勤時刻
                 'clockIn' => $this->formatTime($attendance?->clock_in_at),
@@ -57,11 +56,8 @@ class AttendanceListController extends Controller
                 'clockOut' => $this->formatTime($attendance?->clock_out_at),
 
                 // 休憩時間
-                // 一般ユーザー一覧と同じルールで表示する
                 // 出勤中かつ、まだ一度も休憩していない場合は空欄にする
-                'breakTime' => $attendance
-                    ? $this->formatBreakTime($attendance)
-                    : '',
+                'breakTime' => $this->formatBreakTime($attendance),
 
                 // 合計勤務時間
                 // 出勤・退勤の両方がそろっているときだけ表示する
@@ -69,10 +65,8 @@ class AttendanceListController extends Controller
                     ? $this->formatSeconds($workSeconds)
                     : '',
 
-                // 勤怠データがある場合だけ詳細リンクを付ける
-                'detailUrl' => $attendance
-                    ? route('admin.attendance.detail', ['id' => $attendance->id])
-                    : null,
+                // 勤怠詳細リンク
+                'detailUrl' => route('admin.attendance.detail', ['id' => $attendance->id]),
             ];
         });
 

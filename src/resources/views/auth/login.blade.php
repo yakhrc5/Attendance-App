@@ -13,7 +13,7 @@
 
         <form method="POST" action="{{ route('login') }}" class="auth__form" novalidate>
             @csrf
-            <input type="hidden" name="role" value="user">
+            <input type="hidden" name="role" value="{{ \App\Models\User::ROLE_USER }}">
 
             {{-- メールアドレス --}}
             <div class="auth__field">

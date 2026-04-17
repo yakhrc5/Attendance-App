@@ -77,8 +77,9 @@ class FortifyServiceProvider extends ServiceProvider
             }
 
             // ログイン画面から送られてきた role を取得する
-            // 一般ユーザーログイン画面では user、管理者ログイン画面では admin を送る
-            $loginRole = $request->input('role', 'user');
+            // // 一般ユーザーログイン画面では User::ROLE_USER、
+            // 管理者ログイン画面では User::ROLE_ADMIN を送る
+            $loginRole = (int) $request->input('role', User::ROLE_USER);
 
             // ログインしようとしている画面の role と、
             // 実際のユーザーの role が一致しなければ認証失敗にする

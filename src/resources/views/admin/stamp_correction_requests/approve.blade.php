@@ -45,7 +45,7 @@ $breakRows = collect([
                     <div class="attendance-detail__row">
                         <div class="attendance-detail__label">名前</div>
                         <div class="attendance-detail__value attendance-detail__value--text attendance-detail__value--name">
-                            {{ $stampCorrectionRequest->user->name }}
+                            {{ $stampCorrectionRequest->attendance->user->name }}
                         </div>
                     </div>
 

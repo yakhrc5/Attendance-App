@@ -29,8 +29,7 @@ class AttendanceRequestController extends Controller
         // 未承認の申請がある場合は二重申請を防ぐ
         if ($hasPendingRequest) {
             return redirect()
-                ->route('attendance.detail', ['id' => $attendance->id])
-                ->with('error', 'この勤怠はすでに承認待ちです。');
+                ->route('attendance.detail', ['id' => $attendance->id]);
         }
 
         // FormRequest のバリデーション通過後データを取得する
@@ -43,9 +42,6 @@ class AttendanceRequestController extends Controller
         $stampCorrectionRequest = StampCorrectionRequest::create([
             'attendance_id' => $attendance->id,
             'user_id' => Auth::id(),
-
-            // 承認者はまだいないので null のまま
-            'approved_by_admin_id' => null,
 
             // 申請された出勤・退勤時刻を datetime に変換して保存する
             'requested_clock_in_at' => $this->toDateTimeOrNull(
@@ -81,8 +77,7 @@ class AttendanceRequestController extends Controller
 
         // 詳細画面へ戻す
         return redirect()
-            ->route('attendance.detail', ['id' => $attendance->id])
-            ->with('success', '修正申請を送信しました。');
+            ->route('attendance.detail', ['id' => $attendance->id]);
     }
 
     // 休憩配列を保存しやすい形に整える

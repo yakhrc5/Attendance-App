@@ -16,8 +16,6 @@ class RedirectIfAuthenticated
      * - 通常のログイン済みユーザーは HOME にリダイレクトする
      * - ただし「メール未認証ユーザー」だけは、
      *   login / register 画面への再アクセスを許可する
-     */
-    /**
      * Handle an incoming request.
      *
      * @param  \Illuminate\Http\Request  $request

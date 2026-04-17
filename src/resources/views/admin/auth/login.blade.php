@@ -16,9 +16,9 @@
 
             {{--
                 Fortify 側で一般ユーザー / 管理者を判別するための hidden
-                管理者ログイン画面からは role=admin を送る
+                管理者ログイン画面からは管理者権限を送る
             --}}
-            <input type="hidden" name="role" value="admin">
+            <input type="hidden" name="role" value="{{ \App\Models\User::ROLE_ADMIN }}">
 
             {{-- メールアドレス --}}
             <div class="auth__field">

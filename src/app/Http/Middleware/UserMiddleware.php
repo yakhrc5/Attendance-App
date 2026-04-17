@@ -22,7 +22,9 @@ class UserMiddleware
         }
 
         // 管理者なら管理者側トップへ
-        if (auth()->user()->role !== 'user') {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        if ($user->isAdmin()) {
             return redirect()->route('admin.attendance.list');
         }
 

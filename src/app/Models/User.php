@@ -58,4 +58,10 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->role === self::ROLE_ADMIN;
     }
+
+    // 一般ユーザーかどうかを判定する
+    public function isUser(): bool
+    {
+        return $this->role === self::ROLE_USER;
+    }
 }

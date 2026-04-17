@@ -16,7 +16,7 @@ class StaffListController extends Controller
         // 一般ユーザーだけを一覧表示対象にする
         // 管理者アカウントは一覧に含めない
         $staffUsers = User::query()
-            ->where('role', 'user')
+            ->where('role', User::ROLE_USER)
             ->orderBy('name')
             ->get([
                 'id',

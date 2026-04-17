@@ -16,10 +16,10 @@ class StampCorrectionRequestApproveController extends Controller
     public function show(int $id): View
     {
         // 対象の修正申請を取得する
-        // 申請者情報、元の勤怠情報、申請休憩情報をまとめて読み込む
+        // 申請者情報は attendance.user 経由で取得する
         $stampCorrectionRequest = StampCorrectionRequest::query()
             ->with([
-                'user',
+                'attendance.user',
                 'attendance',
                 'stampCorrectionBreaks' => fn($query) => $query->orderBy('requested_break_start_at'),
             ])
@@ -49,9 +49,7 @@ class StampCorrectionRequestApproveController extends Controller
             ])
             ->findOrFail($id);
 
-        // 承認対象外なら画面へ戻す
-        // - すでに承認済み
-        // - 管理者直接修正の履歴
+        // すでに承認済みなら画面へ戻す
         if (!$this->canApprove($stampCorrectionRequest)) {
             return redirect()
                 ->route('admin.stamp_correction_request.approve', [
@@ -83,7 +81,6 @@ class StampCorrectionRequestApproveController extends Controller
 
             // 申請を承認済みに更新する
             $stampCorrectionRequest->update([
-                'approved_by_admin_id' => auth()->id(),
                 'approved_at' => now(),
             ]);
         });
@@ -101,9 +98,8 @@ class StampCorrectionRequestApproveController extends Controller
      */
     private function canApprove(StampCorrectionRequest $stampCorrectionRequest): bool
     {
-        // 一般ユーザー申請で、かつ未承認のものだけ承認対象にする
-        return $stampCorrectionRequest->request_source === StampCorrectionRequest::SOURCE_USER_REQUEST
-            && is_null($stampCorrectionRequest->approved_at);
+        // 未承認のものだけ承認対象にする
+        return is_null($stampCorrectionRequest->approved_at);
     }
 
     /**

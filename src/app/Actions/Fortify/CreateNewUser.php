@@ -27,11 +27,11 @@ class CreateNewUser implements CreatesNewUsers
             $request->messages(),
         )->validate();
 
-        // 一般ユーザー登録画面から作成されるユーザーは role=user で固定する
+        // 一般ユーザー登録画面から作成されるユーザーは一般ユーザー権限で固定する
         return User::create([
             'name' => $input['name'],
             'email' => $input['email'],
-            'role' => 'user',
+            'role' => User::ROLE_USER,
             'password' => Hash::make($input['password']),
         ]);
     }

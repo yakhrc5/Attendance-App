@@ -21,24 +21,6 @@
 </head>
 
 <body>
-    @php
-    // 認証系画面では「ロゴのみヘッダー」にする
-    $isAuthHeader = request()->routeIs(
-    'login',
-    'register',
-    'verification.notice',
-    'verification.verify',
-    'admin.login'
-    );
-
-    // 管理者ログイン中かどうかを判定する
-    $isAdminUser = auth()->check() && auth()->user()->role === 'admin';
-
-    // default: 通常ログイン後
-    // after_clock_out: 退勤後
-    $headerMode = $headerMode ?? 'default';
-    @endphp
-
     {{-- ヘッダー --}}
     <header class="header">
         <div class="header__inner">

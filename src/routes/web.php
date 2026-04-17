@@ -25,7 +25,10 @@ Route::get('/', function () {
     }
 
     // ログイン済みなら role に応じて遷移先を分ける
-    if (auth()->user()->role === 'admin') {
+    /** @var \App\Models\User $user */
+    $user = auth()->user();
+
+    if ($user->isAdmin()) {
         return redirect()->route('admin.attendance.list');
     }
 
@@ -90,6 +93,7 @@ Route::middleware(['auth', 'verified', 'user'])->group(function () {
 Route::get('/admin/login', function () {
     // ログイン済みユーザーがいる場合
     if (auth()->check()) {
+        /** @var \App\Models\User $user */
         $user = auth()->user();
 
         // メール未認証ユーザーだけは管理者ログイン画面を開けるようにする
@@ -100,7 +104,7 @@ Route::get('/admin/login', function () {
             return view('admin.auth.login');
         }
 
-        return $user->role === 'admin'
+        return $user->isAdmin()
             ? redirect()->route('admin.attendance.list')
             : redirect()->route('attendance.index');
     }

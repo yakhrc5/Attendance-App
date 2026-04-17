@@ -20,8 +20,9 @@ class AttendanceDetailController extends Controller
                 $query->orderBy('id', 'asc');
             },
         ])
+            ->where('id', $id)
             ->where('user_id', Auth::id())
-            ->findOrFail($id);
+            ->firstOrFail();
 
         // この勤怠に紐づく未承認の修正申請を取得する
         // approved_at が null のものを承認待ちとして扱う

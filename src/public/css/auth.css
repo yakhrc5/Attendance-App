@@ -8,7 +8,7 @@ common.css の .layout__main に余白があるため、
 ここではフォーム周辺の調整のみ行う */
 .auth {
     width: 100%;
-    padding: 78px 20px 0;
+    padding: 100px 20px 0;
     box-sizing: border-box;
 }
 
@@ -41,7 +41,7 @@ common.css の .layout__main に余白があるため、
 /* 入力項目ブロック */
 .auth__field {
     width: 100%;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
 }
 
 /* ラベル */
