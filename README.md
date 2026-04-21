@@ -110,21 +110,19 @@ docker compose exec php chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 ### 管理者
 以下のユーザーでログインできます。
 
-- メールアドレス: `admin@example.com`
-- パスワード: `password123`
+| 名前 | メールアドレス | パスワード |
+| --- | --- | --- |
+| 管理者 | `admin@example.com` | `password123` |
 
 ※ 上記管理者はシーディングで登録されます。
 
 ### 一般ユーザー
 以下のユーザーでログインできます。
 
-- ユーザー名: 山田 太郎
-- メールアドレス: `user1@example.com`
-- パスワード: `password123`
-
-- ユーザー名: 佐藤 花子
-- メールアドレス: `user2@example.com`
-- パスワード: `password123`
+| 名前 | メールアドレス | パスワード |
+| --- | --- | --- |
+| 山田 太郎 | `user1@example.com` | `password123` |
+| 佐藤 花子 | `user2@example.com` | `password123` |
 
 ※ 上記ユーザーはシーディングで登録されます。  
 ※ 一般ユーザーで新規登録した場合は、メール認証後にログインできます。
