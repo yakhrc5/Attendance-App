@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\StampCorrectionRequest;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -20,7 +21,6 @@ class StampCorrectionRequestApproveController extends Controller
         $stampCorrectionRequest = StampCorrectionRequest::query()
             ->with([
                 'attendance.user',
-                'attendance',
                 'stampCorrectionBreaks' => fn($query) => $query->orderBy('requested_break_start_at'),
             ])
             ->findOrFail($id);
@@ -32,6 +32,10 @@ class StampCorrectionRequestApproveController extends Controller
         return view('admin.stamp_correction_requests.approve', [
             'stampCorrectionRequest' => $stampCorrectionRequest,
             'canApprove' => $canApprove,
+            'workDate' => Carbon::parse($stampCorrectionRequest->attendance->work_date)->locale('ja'),
+            'requestedClockInValue' => $this->formatTime($stampCorrectionRequest->requested_clock_in_at),
+            'requestedClockOutValue' => $this->formatTime($stampCorrectionRequest->requested_clock_out_at),
+            'requestedBreakRows' => $this->buildRequestedBreakRows($stampCorrectionRequest),
         ]);
     }
 
@@ -50,7 +54,7 @@ class StampCorrectionRequestApproveController extends Controller
             ->findOrFail($id);
 
         // すでに承認済みなら画面へ戻す
-        if (!$this->canApprove($stampCorrectionRequest)) {
+        if (! $this->canApprove($stampCorrectionRequest)) {
             return redirect()
                 ->route('admin.stamp_correction_request.approve', [
                     'id' => $stampCorrectionRequest->id,
@@ -89,8 +93,7 @@ class StampCorrectionRequestApproveController extends Controller
         return redirect()
             ->route('admin.stamp_correction_request.approve', [
                 'id' => $stampCorrectionRequest->id,
-            ])
-            ->with('success', '修正申請を承認しました。');
+            ]);
     }
 
     /**
@@ -103,6 +106,51 @@ class StampCorrectionRequestApproveController extends Controller
     }
 
     /**
+     * 時刻を H:i 形式に整える
+     *
+     * @param \Carbon\Carbon|string|null $dateTime
+     */
+    private function formatTime($dateTime): string
+    {
+        if (empty($dateTime)) {
+            return '';
+        }
+
+        return Carbon::parse($dateTime)->format('H:i');
+    }
+
+    /**
+     * 承認画面で使う休憩行データを作る
+     *
+     * @return array<int, array{
+     *     break_start_at: string,
+     *     break_end_at: string
+     * }>
+     */
+    private function buildRequestedBreakRows(StampCorrectionRequest $stampCorrectionRequest): array
+    {
+        $rows = $stampCorrectionRequest->stampCorrectionBreaks
+            ->map(function ($stampCorrectionBreak): array {
+                return [
+                    'break_start_at' => $this->formatTime($stampCorrectionBreak->requested_break_start_at),
+                    'break_end_at' => $this->formatTime($stampCorrectionBreak->requested_break_end_at),
+                ];
+            })
+            ->values()
+            ->all();
+
+        // 休憩が 1 件もない場合でも 1 行は表示する
+        if ($rows === []) {
+            $rows[] = [
+                'break_start_at' => '',
+                'break_end_at' => '',
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
      * 申請休憩を attendance_breaks 登録用データへ変換する
      *
      * @return array<int, array{
@@ -112,30 +160,22 @@ class StampCorrectionRequestApproveController extends Controller
      */
     private function buildAttendanceBreakRows(StampCorrectionRequest $stampCorrectionRequest): array
     {
-        // 登録用配列の初期値を用意する
         $rows = [];
 
-        // 申請休憩を順番に確認する
         foreach ($stampCorrectionRequest->stampCorrectionBreaks as $stampCorrectionBreak) {
-            // 申請された休憩開始時刻を取得する
             $requestedBreakStartAt = $stampCorrectionBreak->requested_break_start_at;
-
-            // 申請された休憩終了時刻を取得する
             $requestedBreakEndAt = $stampCorrectionBreak->requested_break_end_at;
 
-            // 両方空なら無視する
             if (empty($requestedBreakStartAt) && empty($requestedBreakEndAt)) {
                 continue;
             }
 
-            // attendance_breaks テーブルに登録できる形へ整形して追加する
             $rows[] = [
                 'break_start_at' => $requestedBreakStartAt,
                 'break_end_at' => $requestedBreakEndAt,
             ];
         }
 
-        // 生成した配列を返す
         return $rows;
     }
 }

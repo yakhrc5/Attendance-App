@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class StampCorrectionRequest extends Model
 {
@@ -24,13 +26,13 @@ class StampCorrectionRequest extends Model
     ];
 
     // この打刻修正申請に紐づく勤怠
-    public function attendance()
+    public function attendance(): BelongsTo
     {
         return $this->belongsTo(Attendance::class);
     }
 
     // この打刻修正申請に紐づく休憩一覧
-    public function stampCorrectionBreaks()
+    public function stampCorrectionBreaks(): HasMany
     {
         return $this->hasMany(StampCorrectionBreak::class);
     }

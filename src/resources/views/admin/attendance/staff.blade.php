@@ -15,93 +15,98 @@
         </div>
 
         {{-- 月切り替えナビ --}}
-        <div class="attendance-list__month-nav">
+        <nav class="date-nav" aria-label="月切り替え">
+            {{-- 前月へ移動 --}}
             <a
-                class="attendance-list__month-link attendance-list__month-link--prev"
+                class="date-nav__link"
                 href="{{ route('admin.attendance.staff', ['id' => $staffUser->id, 'month' => $previousMonth]) }}">
                 ← 前月
             </a>
 
-            <p class="attendance-list__month-current">
-                {{-- カレンダーアイコン --}}
-                <span class="attendance-list__month-icon" aria-hidden="true">
-                    <svg
-                        class="attendance-list__month-icon-svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <rect
-                            x="3"
-                            y="5"
-                            width="18"
-                            height="16"
-                            rx="2"
-                            stroke="currentColor"
-                            stroke-width="2" />
-                        <path
-                            d="M8 3V7"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round" />
-                        <path
-                            d="M16 3V7"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round" />
-                        <path
-                            d="M3 10H21"
-                            stroke="currentColor"
-                            stroke-width="2" />
-                    </svg>
-                </span>
+            {{-- 表示する月を選択するフォーム --}}
+            <form
+                action="{{ route('admin.attendance.staff', ['id' => $staffUser->id]) }}"
+                method="GET"
+                class="date-nav__form">
+                {{-- 実際に送信する月入力 --}}
+                <input
+                    type="month"
+                    name="month"
+                    value="{{ $currentMonthInput }}"
+                    class="date-nav__input"
+                    id="month-picker"
+                    onchange="this.form.submit()">
 
-                <span>{{ $currentMonth }}</span>
-            </p>
+                {{-- カレンダーアイコン押下で月選択を開くボタン --}}
+                <button
+                    type="button"
+                    class="date-nav__button"
+                    data-date-trigger="month-picker"
+                    aria-label="表示する月を選択">
+                    <span class="date-nav__icon" aria-hidden="true">
+                        <img
+                            src="{{ asset('images/icons/calendar.svg') }}"
+                            alt=""
+                            class="date-nav__icon-svg">
+                    </span>
 
+                    {{-- 現在表示中の年月ラベル --}}
+                    <span class="date-nav__label">{{ $currentMonthLabel }}</span>
+                </button>
+            </form>
+
+            {{-- 翌月へ移動 --}}
             <a
-                class="attendance-list__month-link attendance-list__month-link--next"
+                class="date-nav__link"
                 href="{{ route('admin.attendance.staff', ['id' => $staffUser->id, 'month' => $nextMonth]) }}">
                 翌月 →
             </a>
-        </div>
+        </nav>
 
         {{-- 勤怠一覧テーブル --}}
         <div class="attendance-list__table-wrap">
             <table class="attendance-list__table">
                 <thead class="attendance-list__head">
                     <tr class="attendance-list__head-row">
-                        <th class="attendance-list__head-cell">日付</th>
-                        <th class="attendance-list__head-cell">出勤</th>
-                        <th class="attendance-list__head-cell">退勤</th>
-                        <th class="attendance-list__head-cell">休憩</th>
-                        <th class="attendance-list__head-cell">合計</th>
-                        <th class="attendance-list__head-cell">詳細</th>
+                        <th class="attendance-list__head-cell" scope="col">日付</th>
+                        <th class="attendance-list__head-cell" scope="col">出勤</th>
+                        <th class="attendance-list__head-cell" scope="col">退勤</th>
+                        <th class="attendance-list__head-cell" scope="col">休憩</th>
+                        <th class="attendance-list__head-cell" scope="col">合計</th>
+                        <th class="attendance-list__head-cell" scope="col">詳細</th>
                     </tr>
                 </thead>
 
                 <tbody class="attendance-list__body">
+                    {{-- 対象月の全日付を1行ずつ表示する --}}
                     @foreach ($attendanceRows as $row)
-                    @php
-                    /** @var \Carbon\Carbon $workDate */
-                    $workDate = $row['workDate'];
-                    @endphp
-
                     <tr class="attendance-list__row">
+                        {{-- 日付 --}}
                         <td class="attendance-list__cell">
-                            {{ $workDate->isoFormat('MM/DD(dd)') }}
+                            {{ $row['workDate']->isoFormat('MM/DD(dd)') }}
                         </td>
+
+                        {{-- 出勤時刻 --}}
                         <td class="attendance-list__cell">
                             {{ $row['clockIn'] }}
                         </td>
+
+                        {{-- 退勤時刻 --}}
                         <td class="attendance-list__cell">
                             {{ $row['clockOut'] }}
                         </td>
+
+                        {{-- 休憩時間 --}}
                         <td class="attendance-list__cell">
                             {{ $row['breakTime'] }}
                         </td>
+
+                        {{-- 勤務合計時間 --}}
                         <td class="attendance-list__cell">
                             {{ $row['workTime'] }}
                         </td>
+
+                        {{-- 勤怠データがある日だけ詳細リンクを表示する --}}
                         <td class="attendance-list__cell">
                             @if (!empty($row['detailUrl']))
                             <a
@@ -110,6 +115,7 @@
                                 詳細
                             </a>
                             @else
+                            {{-- 勤怠データがない日は押せない見た目にする --}}
                             <span
                                 class="attendance-list__detail-link attendance-list__detail-link--disabled"
                                 aria-disabled="true">
@@ -131,7 +137,7 @@
                 <input
                     type="hidden"
                     name="month"
-                    value="{{ request('month', now()->format('Y-m')) }}">
+                    value="{{ $currentMonthInput }}">
                 <button type="submit" class="attendance-list__csv-button">
                     CSV出力
                 </button>
@@ -139,4 +145,31 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('js')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const triggers = document.querySelectorAll('[data-date-trigger]');
+
+        triggers.forEach(function(trigger) {
+            const inputId = trigger.getAttribute('data-date-trigger');
+            const targetInput = document.getElementById(inputId);
+
+            if (!targetInput) {
+                return;
+            }
+
+            trigger.addEventListener('click', function() {
+                if (typeof targetInput.showPicker === 'function') {
+                    targetInput.showPicker();
+                    return;
+                }
+
+                targetInput.focus();
+                targetInput.click();
+            });
+        });
+    });
+</script>
 @endsection

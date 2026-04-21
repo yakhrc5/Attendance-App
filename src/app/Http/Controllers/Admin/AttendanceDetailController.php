@@ -19,8 +19,32 @@ class AttendanceDetailController extends Controller
     public function show(int $id): View
     {
         // 対象の勤怠を取得する
-        // ユーザー情報と休憩情報も一緒に読み込む
-        $attendance = Attendance::query()
+        $attendance = $this->findAttendance($id);
+
+        // この勤怠に紐づく未承認の修正申請を取得する
+        $pendingCorrectionRequest = $this->findPendingCorrectionRequest($attendance);
+
+        // 承認待ち申請があるかどうかを真偽値で持たせる
+        $isPending = !is_null($pendingCorrectionRequest);
+
+        return view('admin.attendance.detail', [
+            'attendance' => $attendance,
+            'workDate' => Carbon::parse($attendance->work_date)->locale('ja'),
+            'isPending' => $isPending,
+            'clockInValue' => $this->formatTime($attendance->clock_in_at),
+            'clockOutValue' => $this->formatTime($attendance->clock_out_at),
+            'editableBreakRows' => $this->buildEditableBreakRows($attendance, $isPending),
+            'pendingCorrectionRequest' => $pendingCorrectionRequest,
+            'pendingClockInValue' => $this->formatTime($pendingCorrectionRequest?->requested_clock_in_at),
+            'pendingClockOutValue' => $this->formatTime($pendingCorrectionRequest?->requested_clock_out_at),
+            'pendingBreakRows' => $this->buildPendingBreakRows($pendingCorrectionRequest),
+        ]);
+    }
+
+    // 管理者が閲覧する勤怠を取得する
+    private function findAttendance(int $id): Attendance
+    {
+        return Attendance::query()
             ->with([
                 'user',
                 'attendanceBreaks' => function ($query) {
@@ -29,10 +53,12 @@ class AttendanceDetailController extends Controller
                 },
             ])
             ->findOrFail($id);
+    }
 
-        // この勤怠に紐づく未承認の修正申請を取得する
-        // approved_at が null のものを承認待ちとして扱う
-        $pendingCorrectionRequest = StampCorrectionRequest::query()
+    // 未承認の修正申請を取得する
+    private function findPendingCorrectionRequest(Attendance $attendance): ?StampCorrectionRequest
+    {
+        return StampCorrectionRequest::query()
             ->with([
                 'stampCorrectionBreaks' => function ($query) {
                     // 申請側の休憩も ID 昇順で取得する
@@ -43,21 +69,82 @@ class AttendanceDetailController extends Controller
             ->whereNull('approved_at')
             ->latest('id')
             ->first();
-
-        // 承認待ち申請があるかどうかを真偽値で持たせる
-        $isPending = !is_null($pendingCorrectionRequest);
-
-        // 管理者用詳細画面を表示する
-        return view('admin.attendance.detail', [
-            'attendance' => $attendance,
-            'isPending' => $isPending,
-            'pendingCorrectionRequest' => $pendingCorrectionRequest,
-        ]);
     }
 
-    /**
-     * 管理者用 勤怠直接修正処理
-     */
+    // 編集可能画面で使う休憩行データを作る
+    private function buildEditableBreakRows(Attendance $attendance, bool $isPending): array
+    {
+        // 承認待ち画面では使わない
+        if ($isPending) {
+            return [];
+        }
+
+        // バリデーションエラー後は old() の入力値を優先する
+        $editableBreakRows = collect(old('breaks', []))->map(function (array $breakRow): array {
+            return [
+                'break_start_at' => $breakRow['break_start_at'] ?? '',
+                'break_end_at' => $breakRow['break_end_at'] ?? '',
+            ];
+        });
+
+        // 初回表示時は現在の勤怠休憩データを使う
+        if ($editableBreakRows->isEmpty()) {
+            $editableBreakRows = $attendance->attendanceBreaks->map(function ($attendanceBreak): array {
+                return [
+                    'break_start_at' => $this->formatTime($attendanceBreak->break_start_at),
+                    'break_end_at' => $this->formatTime($attendanceBreak->break_end_at),
+                ];
+            });
+        }
+
+        // 最後の行に入力があるときだけ空行を 1 つ追加する
+        $lastBreakRow = $editableBreakRows->last();
+        $hasNoRows = $editableBreakRows->isEmpty();
+
+        $lastRowHasInput = ! $hasNoRows && (
+            ! empty($lastBreakRow['break_start_at']) ||
+            ! empty($lastBreakRow['break_end_at'])
+        );
+
+        if ($hasNoRows || $lastRowHasInput) {
+            $editableBreakRows->push([
+                'break_start_at' => '',
+                'break_end_at' => '',
+            ]);
+        }
+
+        return $editableBreakRows->values()->all();
+    }
+
+    // 承認待ち画面で使う休憩行データを作る
+    private function buildPendingBreakRows(?StampCorrectionRequest $pendingCorrectionRequest): array
+    {
+        if (is_null($pendingCorrectionRequest)) {
+            return [];
+        }
+
+        return $pendingCorrectionRequest->stampCorrectionBreaks
+            ->map(function ($stampCorrectionBreak): array {
+                return [
+                    'break_start_at' => $this->formatTime($stampCorrectionBreak->requested_break_start_at),
+                    'break_end_at' => $this->formatTime($stampCorrectionBreak->requested_break_end_at),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    // 時刻を H:i 形式に整える
+    private function formatTime($dateTime): string
+    {
+        if (empty($dateTime)) {
+            return '';
+        }
+
+        return Carbon::parse($dateTime)->format('H:i');
+    }
+
+    // 管理者用 勤怠直接修正処理
     public function update(AttendanceCorrectionRequest $request, int $id): RedirectResponse
     {
         // 更新対象の勤怠を取得する
@@ -74,8 +161,7 @@ class AttendanceDetailController extends Controller
 
         if ($pendingRequestExists) {
             return redirect()
-                ->route('admin.attendance.detail', ['id' => $attendance->id])
-                ->with('error', '承認待ちのため修正はできません。');
+                ->route('admin.attendance.detail', ['id' => $attendance->id]);
         }
 
         // バリデーション済みデータを取得する
@@ -175,12 +261,9 @@ class AttendanceDetailController extends Controller
         return Carbon::parse($workDate)->format('Y-m-d');
     }
 
-    /**
-     * 日付と時刻文字列を結合して datetime 文字列を作る
-     */
+    // 日付と時刻文字列を結合して datetime 文字列を作る
     private function buildDateTime(string $workDate, string $time): string
     {
-        // 例: 2026-04-05 + 09:00 → 2026-04-05 09:00:00
         return $workDate . ' ' . $time . ':00';
     }
 
@@ -198,15 +281,10 @@ class AttendanceDetailController extends Controller
      */
     private function buildAttendanceBreakRows(string $workDate, array $breaks): array
     {
-        // 登録用配列の初期値を用意する
         $rows = [];
 
-        // 入力された休憩行を順番に確認する
         foreach ($breaks as $break) {
-            // 休憩開始時刻を取り出す
             $breakStartAt = $break['break_start_at'] ?? null;
-
-            // 休憩終了時刻を取り出す
             $breakEndAt = $break['break_end_at'] ?? null;
 
             // 両方空の行は未入力行として無視する
@@ -214,14 +292,12 @@ class AttendanceDetailController extends Controller
                 continue;
             }
 
-            // 本体休憩テーブルに登録できる形へ整形して追加する
             $rows[] = [
                 'break_start_at' => $this->buildDateTime($workDate, $breakStartAt),
                 'break_end_at' => $this->buildDateTime($workDate, $breakEndAt),
             ];
         }
 
-        // 生成した配列を返す
         return $rows;
     }
 
@@ -239,15 +315,10 @@ class AttendanceDetailController extends Controller
      */
     private function buildStampCorrectionBreakRows(string $workDate, array $breaks): array
     {
-        // 履歴登録用配列の初期値を用意する
         $rows = [];
 
-        // 入力された休憩行を順番に確認する
         foreach ($breaks as $break) {
-            // 休憩開始時刻を取り出す
             $breakStartAt = $break['break_start_at'] ?? null;
-
-            // 休憩終了時刻を取り出す
             $breakEndAt = $break['break_end_at'] ?? null;
 
             // 両方空の行は未入力行として無視する
@@ -255,14 +326,12 @@ class AttendanceDetailController extends Controller
                 continue;
             }
 
-            // 修正履歴テーブルに登録できる形へ整形して追加する
             $rows[] = [
                 'requested_break_start_at' => $this->buildDateTime($workDate, $breakStartAt),
                 'requested_break_end_at' => $this->buildDateTime($workDate, $breakEndAt),
             ];
         }
 
-        // 生成した配列を返す
         return $rows;
     }
 }

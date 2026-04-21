@@ -14,10 +14,7 @@
         <form method="POST" action="{{ route('login') }}" class="auth__form" novalidate>
             @csrf
 
-            {{--
-                Fortify 側で一般ユーザー / 管理者を判別するための hidden
-                管理者ログイン画面からは管理者権限を送る
-            --}}
+            {{-- Fortify 側で管理者を判別するための hidden --}}
             <input type="hidden" name="role" value="{{ \App\Models\User::ROLE_ADMIN }}">
 
             {{-- メールアドレス --}}

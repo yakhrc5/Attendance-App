@@ -15,67 +15,72 @@
         </div>
 
         {{-- 日付切り替えナビ --}}
-        <div class="admin-attendance-list__date-nav">
+        <nav class="date-nav" aria-label="日付切り替え">
+            {{-- 前日へ --}}
             <a
-                class="admin-attendance-list__date-link admin-attendance-list__date-link--prev"
+                class="date-nav__link"
                 href="{{ route('admin.attendance.list', ['date' => $previousDate]) }}">
                 ← 前日
             </a>
 
-            <p class="admin-attendance-list__date-current">
-                {{-- カレンダーアイコン --}}
-                <span class="admin-attendance-list__date-icon" aria-hidden="true">
-                    <svg
-                        class="admin-attendance-list__date-icon-svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <rect
-                            x="3"
-                            y="5"
-                            width="18"
-                            height="16"
-                            rx="2"
-                            stroke="currentColor"
-                            stroke-width="2" />
-                        <path
-                            d="M8 3V7"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round" />
-                        <path
-                            d="M16 3V7"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round" />
-                        <path
-                            d="M3 10H21"
-                            stroke="currentColor"
-                            stroke-width="2" />
-                    </svg>
-                </span>
+            {{-- 日付選択フォーム --}}
+            <form
+                action="{{ route('admin.attendance.list') }}"
+                method="GET"
+                class="date-nav__form">
+                {{-- 実際に送信する日付入力 --}}
+                <input
+                    type="date"
+                    name="date"
+                    value="{{ $currentDateInput }}"
+                    class="date-nav__input"
+                    id="date-picker"
+                    onchange="this.form.submit()">
 
-                <span>{{ $currentDate }}</span>
-            </p>
+                {{-- カレンダーアイコン押下で日付選択を開く --}}
+                <button
+                    type="button"
+                    class="date-nav__button"
+                    data-date-trigger="date-picker"
+                    aria-label="表示する日付を選択">
+                    <span class="date-nav__icon" aria-hidden="true">
+                        <img
+                            src="{{ asset('images/icons/calendar.svg') }}"
+                            alt=""
+                            class="date-nav__icon-svg">
+                    </span>
 
+                    <span class="date-nav__label">{{ $currentDate }}</span>
+                </button>
+            </form>
+
+            {{-- 翌日へ --}}
             <a
-                class="admin-attendance-list__date-link admin-attendance-list__date-link--next"
+                class="date-nav__link"
                 href="{{ route('admin.attendance.list', ['date' => $nextDate]) }}">
                 翌日 →
             </a>
-        </div>
+        </nav>
 
         {{-- 勤怠一覧テーブル --}}
         <div class="admin-attendance-list__table-wrap">
             <table class="admin-attendance-list__table">
                 <thead class="admin-attendance-list__head">
                     <tr class="admin-attendance-list__head-row">
-                        <th class="admin-attendance-list__head-cell admin-attendance-list__head-cell--name">名前</th>
-                        <th class="admin-attendance-list__head-cell">出勤</th>
-                        <th class="admin-attendance-list__head-cell">退勤</th>
-                        <th class="admin-attendance-list__head-cell">休憩</th>
-                        <th class="admin-attendance-list__head-cell">合計</th>
-                        <th class="admin-attendance-list__head-cell admin-attendance-list__head-cell--detail">詳細</th>
+                        <th
+                            class="admin-attendance-list__head-cell admin-attendance-list__head-cell--name"
+                            scope="col">
+                            名前
+                        </th>
+                        <th class="admin-attendance-list__head-cell" scope="col">出勤</th>
+                        <th class="admin-attendance-list__head-cell" scope="col">退勤</th>
+                        <th class="admin-attendance-list__head-cell" scope="col">休憩</th>
+                        <th class="admin-attendance-list__head-cell" scope="col">合計</th>
+                        <th
+                            class="admin-attendance-list__head-cell admin-attendance-list__head-cell--detail"
+                            scope="col">
+                            詳細
+                        </th>
                     </tr>
                 </thead>
 
@@ -119,4 +124,31 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('js')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const triggers = document.querySelectorAll('[data-date-trigger]');
+
+        triggers.forEach(function(trigger) {
+            const inputId = trigger.getAttribute('data-date-trigger');
+            const targetInput = document.getElementById(inputId);
+
+            if (!targetInput) {
+                return;
+            }
+
+            trigger.addEventListener('click', function() {
+                if (typeof targetInput.showPicker === 'function') {
+                    targetInput.showPicker();
+                    return;
+                }
+
+                targetInput.focus();
+                targetInput.click();
+            });
+        });
+    });
+</script>
 @endsection

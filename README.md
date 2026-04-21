@@ -1,7 +1,7 @@
-# Time_and_Attendance_Management_App
+# Attendance Management App
 
 ## アプリ概要
-Time_and_Attendance_Management_App は、一般ユーザーの勤怠打刻および勤怠修正申請、管理者による勤怠確認・修正・申請承認ができる勤怠管理アプリです。
+本アプリは、一般ユーザーの勤怠打刻および勤怠修正申請、管理者による勤怠確認・修正・申請承認ができる勤怠管理アプリです。
 
 一般ユーザーは、出勤・退勤・休憩の打刻、勤怠一覧の確認、勤怠修正申請を行うことができます。
 管理者は、当日の勤怠一覧確認、スタッフ別勤怠一覧確認、勤怠詳細の修正、修正申請の承認を行うことができます。
@@ -38,6 +38,7 @@ Time_and_Attendance_Management_App は、一般ユーザーの勤怠打刻およ
 - Laravel 8.83.29
 - MySQL 8.0.26
 - nginx 1.21.1
+- JavaScript
 - Docker / Docker Compose
 - HTML / CSS（Bladeテンプレート）
 
@@ -49,10 +50,12 @@ Time_and_Attendance_Management_App は、一般ユーザーの勤怠打刻およ
 
 ## 環境構築
 
+※ 以下のコマンドは、すべてホスト側のターミナルでプロジェクトルートから実行してください。
+
 ### Dockerビルド
 1. リポジトリをクローン
 ```bash
-git clone https://github.com/yakhrc5/Attendance-App.git
+git clone https://github.com/yakhrc5/attendance_management_app.git
 ```
 
 2. 作業ディレクトリに移動
@@ -95,6 +98,8 @@ docker compose exec php chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 ## URL
 - 開発環境: http://localhost/
+- 一般ユーザーログイン: http://localhost/login
+- 管理者ログイン: http://localhost/admin/login
 - phpMyAdmin: http://localhost:8080/
 - MailHog: http://localhost:8025/
 
@@ -121,15 +126,14 @@ docker compose exec php chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 - メールアドレス: `user2@example.com`
 - パスワード: `password123`
 
-※ 上記ユーザーはシーディングで登録されます。
+※ 上記ユーザーはシーディングで登録されます。  
+※ 一般ユーザーで新規登録した場合は、メール認証後にログインが可能です。
 
 ---
 
 ## テスト環境構築
 テスト実行時は `.env.testing` の設定を使用します。
-テスト用データベースとして attendance_testing を利用します。
-
-※ 以下のコマンドは、プロジェクトルートでホスト側から実行してください。
+テスト用データベースとして `attendance_testing` を利用します。
 
 1. `.env.testing` ファイルを作成
 ```bash

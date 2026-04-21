@@ -10,11 +10,21 @@ use Illuminate\Support\Facades\Auth;
 
 class AttendanceController extends Controller
 {
-    // ログインユーザーの今日の勤怠を取得する
-    private function findTodayAttendance(int $userId): ?Attendance
+    // ログインユーザーIDを取得する
+    private function currentUserId(): int
     {
-        return Attendance::where('user_id', $userId)
-            ->whereDate('work_date', today())
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        return $user->id;
+    }
+
+    // ログインユーザーの今日の勤怠を取得する
+    private function findTodayAttendance(): ?Attendance
+    {
+        return Attendance::query()
+            ->where('user_id', $this->currentUserId())
+            ->where('work_date', today()->toDateString())
             ->first();
     }
 
@@ -30,7 +40,7 @@ class AttendanceController extends Controller
     public function index(): View
     {
         // ログインユーザーの今日の勤怠情報を取得する
-        $attendance = $this->findTodayAttendance(Auth::id());
+        $attendance = $this->findTodayAttendance();
 
         // 画面表示用の初期値を設定する
         $statusLabel = '勤務外';
@@ -41,17 +51,17 @@ class AttendanceController extends Controller
         $headerMode = 'default';
 
         // 今日の勤怠が未登録なら勤務外とし、出勤ボタンを表示する
-        if (!$attendance) {
+        if (is_null($attendance)) {
             $showClockIn = true;
-        //　attendanceテーブルのレコードが存在し、clock_out_atがnullでない場合は退勤済ステータスのみ表示する
-        }elseif ($attendance->clock_out_at) {
+        // 勤怠レコードがあり、退勤済みなら退勤済ステータスのみ表示する
+        } elseif (!is_null($attendance->clock_out_at)) {
             $statusLabel = '退勤済';
             $headerMode = 'after_clock_out';
-        // 未終了の休憩レコードが存在する場合は休憩中とし、休憩終了ボタンを表示する
+        // 未終了の休憩レコードがある場合は休憩中とし、休憩戻ボタンを表示する
         } elseif ($this->hasOpenBreak($attendance)) {
             $statusLabel = '休憩中';
             $showBreakEnd = true;
-        // 上記以外であれば出勤中とし、休憩入ボタンと退勤ボタンを表示する
+        // 上記以外は出勤中とし、休憩入ボタンと退勤ボタンを表示する
         } else {
             $statusLabel = '出勤中';
             $showBreakStart = true;
@@ -74,15 +84,15 @@ class AttendanceController extends Controller
     public function clockIn(): RedirectResponse
     {
         // 今日の勤怠がすでにある場合は二重打刻を防ぐ
-        $attendance = $this->findTodayAttendance(Auth::id());
+        $attendance = $this->findTodayAttendance();
 
         if (!is_null($attendance)) {
-            return back()->with('error', '本日はすでに出勤済みです。');
+            return back();
         }
 
         Attendance::create([
-            'user_id' => Auth::id(),
-            'work_date' => today(),
+            'user_id' => $this->currentUserId(),
+            'work_date' => today()->toDateString(),
             'clock_in_at' => now(),
         ]);
 
@@ -93,21 +103,21 @@ class AttendanceController extends Controller
     public function clockOut(): RedirectResponse
     {
         // 今日の勤怠を取得する
-        $attendance = $this->findTodayAttendance(Auth::id());
+        $attendance = $this->findTodayAttendance();
 
         // 今日の勤怠が存在しない場合は退勤できない
         if (is_null($attendance)) {
-            return back()->with('error', '本日の勤怠が存在しません。');
+            return back();
         }
 
         // すでに退勤済みの場合は再打刻させない
         if (!is_null($attendance->clock_out_at)) {
-            return back()->with('error', 'すでに退勤済みです。');
+            return back();
         }
 
         // 休憩中は退勤させない
         if ($this->hasOpenBreak($attendance)) {
-            return back()->with('error', '休憩戻を行ってから退勤してください。');
+            return back();
         }
 
         $attendance->update([
@@ -115,29 +125,29 @@ class AttendanceController extends Controller
         ]);
 
         return redirect()
-            ->route('attendance.index')
-            ->with('message', 'お疲れ様でした。');
+            ->route('attendance.index');
     }
+
 
     // 休憩入打刻を登録する
     public function breakStart(): RedirectResponse
     {
         // 今日の勤怠を取得する
-        $attendance = $this->findTodayAttendance(Auth::id());
+        $attendance = $this->findTodayAttendance();
 
         // 出勤前は休憩入できない
         if (is_null($attendance)) {
-            return back()->with('error', '出勤後に休憩入を行ってください。');
+            return back();
         }
 
         // 退勤後は休憩入できない
         if (!is_null($attendance->clock_out_at)) {
-            return back()->with('error', '退勤後は休憩入できません。');
+            return back();
         }
 
         // すでに休憩中なら再度休憩入できない
         if ($this->hasOpenBreak($attendance)) {
-            return back()->with('error', 'すでに休憩中です。');
+            return back();
         }
 
         AttendanceBreak::create([
@@ -152,22 +162,28 @@ class AttendanceController extends Controller
     public function breakEnd(): RedirectResponse
     {
         // 今日の勤怠を取得する
-        $attendance = $this->findTodayAttendance(Auth::id());
+        $attendance = $this->findTodayAttendance();
 
         // 出勤前は休憩戻できない
         if (is_null($attendance)) {
-            return back()->with('error', '出勤後に休憩戻を行ってください。');
+            return back();
+        }
+
+        // 退勤後は休憩戻できない
+        if (!is_null($attendance->clock_out_at)) {
+            return back();
         }
 
         // 今日の未終了休憩を取得する
-        $attendanceBreak = AttendanceBreak::where('attendance_id', $attendance->id)
+        $attendanceBreak = AttendanceBreak::query()
+            ->where('attendance_id', $attendance->id)
             ->whereNull('break_end_at')
             ->latest('break_start_at')
             ->first();
 
         // 未終了休憩がなければ休憩戻できない
         if (is_null($attendanceBreak)) {
-            return back()->with('error', '休憩中ではありません。');
+            return back();
         }
 
         $attendanceBreak->update([

@@ -19,9 +19,9 @@
             <table class="admin-staff-list__table">
                 <thead class="admin-staff-list__head">
                     <tr class="admin-staff-list__head-row">
-                        <th class="admin-staff-list__head-cell admin-staff-list__head-cell--name">名前</th>
-                        <th class="admin-staff-list__head-cell admin-staff-list__head-cell--email">メールアドレス</th>
-                        <th class="admin-staff-list__head-cell admin-staff-list__head-cell--detail">月次勤怠</th>
+                        <th class="admin-staff-list__head-cell admin-staff-list__head-cell--name" scope="col">名前</th>
+                        <th class="admin-staff-list__head-cell admin-staff-list__head-cell--email" scope="col">メールアドレス</th>
+                        <th class="admin-staff-list__head-cell admin-staff-list__head-cell--detail" scope="col">月次勤怠</th>
                     </tr>
                 </thead>
 

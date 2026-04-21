@@ -9,16 +9,27 @@ use App\Models\StampCorrectionRequest;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AttendanceRequestController extends Controller
 {
+    // ログインユーザーIDを取得する
+    private function currentUserId(): int
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        return $user->id;
+    }
+
     // 勤怠修正申請を保存する
     public function store(AttendanceCorrectionRequest $request, int $id): RedirectResponse
     {
         // ログインユーザー本人の勤怠だけ取得する
-        $attendance = Attendance::with('attendanceBreaks')
-            ->where('user_id', Auth::id())
-            ->findOrFail($id);
+        $attendance = Attendance::query()
+            ->where('id', $id)
+            ->where('user_id', $this->currentUserId())
+            ->firstOrFail();
 
         // すでに未承認の修正申請があるか確認する
         $hasPendingRequest = StampCorrectionRequest::query()
@@ -28,8 +39,7 @@ class AttendanceRequestController extends Controller
 
         // 未承認の申請がある場合は二重申請を防ぐ
         if ($hasPendingRequest) {
-            return redirect()
-                ->route('attendance.detail', ['id' => $attendance->id]);
+            return redirect()->route('attendance.detail', ['id' => $attendance->id]);
         }
 
         // FormRequest のバリデーション通過後データを取得する
@@ -38,46 +48,46 @@ class AttendanceRequestController extends Controller
         // 休憩行を保存しやすい形に整える
         $breaks = $this->normalizeBreaks($validated['breaks'] ?? []);
 
-        // 打刻修正申請を作成する
-        $stampCorrectionRequest = StampCorrectionRequest::create([
-            'attendance_id' => $attendance->id,
-            'user_id' => Auth::id(),
+        DB::transaction(function () use ($attendance, $validated, $breaks): void {
+            // 打刻修正申請を作成する
+            $stampCorrectionRequest = StampCorrectionRequest::create([
+                'attendance_id' => $attendance->id,
 
-            // 申請された出勤・退勤時刻を datetime に変換して保存する
-            'requested_clock_in_at' => $this->toDateTimeOrNull(
-                $attendance->work_date,
-                $validated['clock_in_at'] ?? null
-            ),
-            'requested_clock_out_at' => $this->toDateTimeOrNull(
-                $attendance->work_date,
-                $validated['clock_out_at'] ?? null
-            ),
-
-            // 備考は reason カラムに保存する
-            'reason' => $validated['reason'],
-
-            // まだ承認前なので null
-            'approved_at' => null,
-        ]);
-
-        // 休憩申請を子テーブルへ保存する
-        foreach ($breaks as $break) {
-            StampCorrectionBreak::create([
-                'stamp_correction_request_id' => $stampCorrectionRequest->id,
-                'requested_break_start_at' => $this->toDateTimeOrNull(
+                // 申請された出勤・退勤時刻を datetime に変換して保存する
+                'requested_clock_in_at' => $this->toDateTimeOrNull(
                     $attendance->work_date,
-                    $break['break_start_at']
+                    $validated['clock_in_at'] ?? null
                 ),
-                'requested_break_end_at' => $this->toDateTimeOrNull(
+                'requested_clock_out_at' => $this->toDateTimeOrNull(
                     $attendance->work_date,
-                    $break['break_end_at']
+                    $validated['clock_out_at'] ?? null
                 ),
+
+                // 備考は reason カラムに保存する
+                'reason' => $validated['reason'],
+
+                // まだ承認前なので null
+                'approved_at' => null,
             ]);
-        }
+
+            // 休憩申請を子テーブルへ保存する
+            foreach ($breaks as $break) {
+                StampCorrectionBreak::create([
+                    'stamp_correction_request_id' => $stampCorrectionRequest->id,
+                    'requested_break_start_at' => $this->toDateTimeOrNull(
+                        $attendance->work_date,
+                        $break['break_start_at']
+                    ),
+                    'requested_break_end_at' => $this->toDateTimeOrNull(
+                        $attendance->work_date,
+                        $break['break_end_at']
+                    ),
+                ]);
+            }
+        });
 
         // 詳細画面へ戻す
-        return redirect()
-            ->route('attendance.detail', ['id' => $attendance->id]);
+        return redirect()->route('attendance.detail', ['id' => $attendance->id]);
     }
 
     // 休憩配列を保存しやすい形に整える

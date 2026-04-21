@@ -58,7 +58,7 @@
    ヘッダー行
 ================================ */
 .admin-staff-list__head-row {
-    border-bottom: 1px solid #e1e1e1;
+    border-bottom: 1px solid #f0eff2;
 }
 
 /* ================================
@@ -90,7 +90,7 @@
    データ行
 ================================ */
 .admin-staff-list__row {
-    border-bottom: 1px solid #e1e1e1;
+    border-bottom: 1px solid #f0eff2;
 }
 
 .admin-staff-list__row:last-child {
@@ -125,17 +125,6 @@
 }
 
 /* ================================
-   PC幅微調整
-   1400px - 1540px
-================================ */
-@media screen and (min-width: 1400px) and (max-width: 1540px) {
-    .admin-staff-list {
-        padding-left: 24px;
-        padding-right: 24px;
-    }
-}
-
-/* ================================
    タブレット対応
    768px - 850px
 ================================ */
@@ -163,36 +152,5 @@
     .admin-staff-list__cell {
         padding: 14px 10px;
         font-size: 14px;
-    }
-}
-
-/* ================================
-   スマホ対応
-   767px以下
-================================ */
-@media screen and (max-width: 767px) {
-    .admin-staff-list {
-        min-height: calc(100vh - 64px);
-        padding: 32px 16px 48px;
-    }
-
-    .admin-staff-list__heading {
-        margin-bottom: 32px;
-    }
-
-    .admin-staff-list__title {
-        padding-left: 12px;
-        border-left-width: 5px;
-        font-size: 22px;
-    }
-
-    .admin-staff-list__table {
-        min-width: 680px;
-    }
-
-    .admin-staff-list__head-cell,
-    .admin-staff-list__cell {
-        padding: 12px 8px;
-        font-size: 13px;
     }
 }

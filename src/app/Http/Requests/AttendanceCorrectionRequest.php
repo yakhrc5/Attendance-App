@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Attendance;
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -48,6 +50,23 @@ class AttendanceCorrectionRequest extends FormRequest
             $clockInAt = $this->input('clock_in_at');
             $clockOutAt = $this->input('clock_out_at');
             $breaks = $this->input('breaks', []);
+
+            // 対象の勤怠を取得する
+            $attendance = Attendance::find($this->route('id'));
+
+            // 当日の退勤打刻前は修正申請不可
+            if (
+                $attendance !== null
+                && Carbon::parse($attendance->work_date)->isToday()
+                && empty($attendance->clock_out_at)
+            ) {
+                $validator->errors()->add(
+                    'clock_out_at',
+                    '退勤打刻後に修正申請してください'
+                );
+
+                return;
+            }
 
             // 1. 出勤・退勤の前後関係
             if (!empty($clockInAt) && !empty($clockOutAt) && $clockInAt >= $clockOutAt) {

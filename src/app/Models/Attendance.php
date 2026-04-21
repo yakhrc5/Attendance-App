@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Attendance extends Model
 {
@@ -23,19 +25,19 @@ class Attendance extends Model
     ];
 
     // 勤怠に紐づくユーザー
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
     // 勤怠に紐づく休憩一覧
-    public function attendanceBreaks()
+    public function attendanceBreaks(): HasMany
     {
         return $this->hasMany(AttendanceBreak::class);
     }
 
     // 勤怠に紐づく打刻修正申請一覧
-    public function stampCorrectionRequests()
+    public function stampCorrectionRequests(): HasMany
     {
         return $this->hasMany(StampCorrectionRequest::class);
     }

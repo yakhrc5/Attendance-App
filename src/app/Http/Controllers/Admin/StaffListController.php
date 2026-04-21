@@ -14,10 +14,10 @@ class StaffListController extends Controller
     public function index(): View
     {
         // 一般ユーザーだけを一覧表示対象にする
-        // 管理者アカウントは一覧に含めない
         $staffUsers = User::query()
             ->where('role', User::ROLE_USER)
             ->orderBy('name')
+            ->orderBy('id')
             ->get([
                 'id',
                 'name',

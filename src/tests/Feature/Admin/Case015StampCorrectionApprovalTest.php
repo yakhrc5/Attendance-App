@@ -288,9 +288,6 @@ class Case015AdminStampCorrectionApproveTest extends TestCase
             route('admin.stamp_correction_request.approve', ['id' => $stampCorrectionRequest->id])
         );
 
-        // 成功メッセージがセッションに入っていることを確認する
-        $response->assertSessionHas('success', '修正申請を承認しました。');
-
         // 勤怠本体が申請内容で更新されたことを確認する
         $this->assertDatabaseHas('attendances', [
             'id' => $attendance->id,

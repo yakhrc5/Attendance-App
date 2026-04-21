@@ -1,79 +1,12 @@
 @extends('layouts.app')
 
-@section('title', '勤怠詳細')
+@section('title', '管理者勤怠詳細')
 
 @section('css')
 <link rel="stylesheet" href="{{ asset('css/attendance-detail.css') }}">
 @endsection
 
 @section('content')
-@php
-// 勤怠日を日本語表示用の Carbon に変換する
-$workDate = \Carbon\Carbon::parse($attendance->work_date)->locale('ja');
-
-// 日時を H:i 形式にそろえる共通関数
-$formatTime = function ($value): string {
-if (empty($value)) {
-return '';
-}
-
-return \Carbon\Carbon::parse($value)->format('H:i');
-};
-
-// 編集可能画面で使う休憩行データを用意する
-$editableBreakRows = collect(old('breaks', []));
-
-// old() がない初回表示時は、現在の勤怠休憩データを使う
-if ($editableBreakRows->isEmpty()) {
-$editableBreakRows = $attendance->attendanceBreaks->map(function ($attendanceBreak) use ($formatTime) {
-return [
-'break_start_at' => $formatTime($attendanceBreak->break_start_at),
-'break_end_at' => $formatTime($attendanceBreak->break_end_at),
-];
-});
-}
-
-// 編集可能な状態では、最後の行が未入力のときは追加せず、
-// 最後の行に何か入っているときだけ空行を1つ追加する
-if (! $isPending) {
-$lastBreakRow = $editableBreakRows->last();
-$hasNoRows = $editableBreakRows->isEmpty();
-
-$lastRowHasInput = ! $hasNoRows && (
-! empty($lastBreakRow['break_start_at']) ||
-! empty($lastBreakRow['break_end_at'])
-);
-
-if ($hasNoRows || $lastRowHasInput) {
-$editableBreakRows = $editableBreakRows->push([
-'break_start_at' => '',
-'break_end_at' => '',
-]);
-}
-}
-
-// 承認待ち画面で使う休憩行データを用意する
-$pendingBreakRows = collect();
-
-if ($pendingCorrectionRequest) {
-$pendingBreakRows = $pendingCorrectionRequest->stampCorrectionBreaks->map(function ($stampCorrectionBreak) use ($formatTime) {
-return [
-'break_start_at' => $formatTime($stampCorrectionBreak->requested_break_start_at),
-'break_end_at' => $formatTime($stampCorrectionBreak->requested_break_end_at),
-];
-});
-}
-
-// 承認待ち画面で表示する出退勤時刻を整形する
-$pendingClockInAt = $pendingCorrectionRequest
-? $formatTime($pendingCorrectionRequest->requested_clock_in_at)
-: '';
-
-$pendingClockOutAt = $pendingCorrectionRequest
-? $formatTime($pendingCorrectionRequest->requested_clock_out_at)
-: '';
-@endphp
-
 <div class="attendance-detail">
     <div class="attendance-detail__inner">
         {{-- 画面見出し --}}
@@ -81,6 +14,7 @@ $pendingClockOutAt = $pendingCorrectionRequest
             <h1 class="attendance-detail__title">勤怠詳細</h1>
         </div>
 
+        {{-- 更新失敗時のメッセージ --}}
         @if (session('error'))
         <p class="attendance-detail__pending-message">
             {{ session('error') }}
@@ -89,7 +23,7 @@ $pendingClockOutAt = $pendingCorrectionRequest
 
         <div class="attendance-detail__card">
             @if (! $isPending)
-            {{-- 修正可能画面では form として出力する --}}
+            {{-- 修正可能な場合はフォームとして出力する --}}
             <form
                 action="{{ route('admin.attendance.update', ['id' => $attendance->id]) }}"
                 method="POST"
@@ -97,7 +31,7 @@ $pendingClockOutAt = $pendingCorrectionRequest
                 @csrf
                 @method('PATCH')
                 @else
-                {{-- 承認待ち画面ではラッパーのみ出力する --}}
+                {{-- 承認待ちの場合は読み取り専用のラッパーで出力する --}}
                 <div class="attendance-detail__form-wrap attendance-detail__form-wrap--readonly">
                     @endif
 
@@ -135,7 +69,7 @@ $pendingClockOutAt = $pendingCorrectionRequest
                                             type="time"
                                             name="clock_in_at"
                                             class="attendance-detail__time-input"
-                                            value="{{ old('clock_in_at', $formatTime($attendance->clock_in_at)) }}">
+                                            value="{{ old('clock_in_at', $clockInValue) }}">
 
                                         <span class="attendance-detail__separator">～</span>
 
@@ -143,7 +77,7 @@ $pendingClockOutAt = $pendingCorrectionRequest
                                             type="time"
                                             name="clock_out_at"
                                             class="attendance-detail__time-input"
-                                            value="{{ old('clock_out_at', $formatTime($attendance->clock_out_at)) }}">
+                                            value="{{ old('clock_out_at', $clockOutValue) }}">
                                     </div>
 
                                     <div class="attendance-detail__error-area attendance-detail__error-area--time">
@@ -225,13 +159,13 @@ $pendingClockOutAt = $pendingCorrectionRequest
                             <div class="attendance-detail__value attendance-detail__value--time">
                                 <div class="attendance-detail__time-group attendance-detail__time-group--readonly">
                                     <span class="attendance-detail__time-text">
-                                        {{ $pendingClockInAt }}
+                                        {{ $pendingClockInValue }}
                                     </span>
 
                                     <span class="attendance-detail__separator">～</span>
 
                                     <span class="attendance-detail__time-text">
-                                        {{ $pendingClockOutAt }}
+                                        {{ $pendingClockOutValue }}
                                     </span>
                                 </div>
                             </div>
@@ -298,7 +232,7 @@ $pendingClockOutAt = $pendingCorrectionRequest
 
         {{-- 承認待ちメッセージ --}}
         <p class="attendance-detail__pending-message">
-            ※承認待ちのため修正はできません。
+            *承認待ちのため修正はできません。
         </p>
         @endif
     </div>

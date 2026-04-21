@@ -13,6 +13,8 @@
 
         <form method="POST" action="{{ route('login') }}" class="auth__form" novalidate>
             @csrf
+
+            {{-- Fortify 側で一般ユーザーを判別するための hidden --}}
             <input type="hidden" name="role" value="{{ \App\Models\User::ROLE_USER }}">
 
             {{-- メールアドレス --}}

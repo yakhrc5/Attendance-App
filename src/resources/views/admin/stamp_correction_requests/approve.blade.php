@@ -4,33 +4,9 @@
 
 @section('css')
 <link rel="stylesheet" href="{{ asset('css/attendance-detail.css') }}">
-<link rel="stylesheet" href="{{ asset('css/admin-stamp-correction-approve.css') }}">
 @endsection
 
 @section('content')
-@php
-// 対象勤怠日を日本語表示用の Carbon に変換する
-$workDate = \Carbon\Carbon::parse($stampCorrectionRequest->attendance->work_date)->locale('ja');
-
-// 申請休憩行を表示用データに整形する
-$breakRows = $stampCorrectionRequest->stampCorrectionBreaks->map(function ($stampCorrectionBreak) {
-return [
-'break_start_at' => optional($stampCorrectionBreak->requested_break_start_at)->format('H:i'),
-'break_end_at' => optional($stampCorrectionBreak->requested_break_end_at)->format('H:i'),
-];
-});
-
-// 休憩が1件もない場合でも1行は表示する
-if ($breakRows->isEmpty()) {
-$breakRows = collect([
-[
-'break_start_at' => '',
-'break_end_at' => '',
-],
-]);
-}
-@endphp
-
 <div class="attendance-detail">
     <div class="attendance-detail__inner">
         {{-- 画面見出し --}}
@@ -69,20 +45,20 @@ $breakRows = collect([
                         <div class="attendance-detail__value attendance-detail__value--time">
                             <div class="attendance-detail__time-group attendance-detail__time-group--readonly">
                                 <span class="attendance-detail__time-text">
-                                    {{ optional($stampCorrectionRequest->requested_clock_in_at)->format('H:i') }}
+                                    {{ $requestedClockInValue }}
                                 </span>
 
                                 <span class="attendance-detail__separator">～</span>
 
                                 <span class="attendance-detail__time-text">
-                                    {{ optional($stampCorrectionRequest->requested_clock_out_at)->format('H:i') }}
+                                    {{ $requestedClockOutValue }}
                                 </span>
                             </div>
                         </div>
                     </div>
 
                     {{-- 休憩 --}}
-                    @foreach ($breakRows as $index => $breakRow)
+                    @foreach ($requestedBreakRows as $index => $breakRow)
                     <div class="attendance-detail__row">
                         <div class="attendance-detail__label">
                             {{ $index === 0 ? '休憩' : '休憩' . ($index + 1) }}

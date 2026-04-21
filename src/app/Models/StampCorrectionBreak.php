@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StampCorrectionBreak extends Model
 {
@@ -21,7 +22,7 @@ class StampCorrectionBreak extends Model
     ];
 
     // この休憩が紐づく打刻修正申請
-    public function stampCorrectionRequest()
+    public function stampCorrectionRequest(): BelongsTo
     {
         return $this->belongsTo(StampCorrectionRequest::class);
     }

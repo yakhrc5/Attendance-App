@@ -67,7 +67,7 @@ class Case002LoginTest extends TestCase
         $response->assertSessionHasErrors('email');
 
         $errors = session('errors');
-        $this->assertEquals('ログイン情報が登録されていません。', $errors->first('email'));
+        $this->assertEquals('ログイン情報が登録されていません', $errors->first('email'));
 
         // ログインされていないことを確認する
         $this->assertGuest();

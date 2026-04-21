@@ -12,7 +12,7 @@ use Illuminate\View\View;
 class AttendanceListController extends Controller
 {
     /**
-     * 管理者用 勤怠一覧画面を表示する
+     * 管理者用 勤怠一覧画面
      */
     public function index(Request $request): View
     {
@@ -27,7 +27,7 @@ class AttendanceListController extends Controller
                 'user:id,name,role',
                 'attendanceBreaks',
             ])
-            ->whereDate('work_date', $targetDate->toDateString())
+            ->where('work_date', $targetDate->toDateString())
             ->whereHas('user', function ($query) {
                 $query->where('role', User::ROLE_USER);
             })
@@ -37,23 +37,22 @@ class AttendanceListController extends Controller
             ->get();
 
         // Blade に渡す一覧表示用データを整形する
-        $attendanceRows = $attendances->map(function (Attendance $attendance) {
+        $attendanceRows = $attendances->map(function (Attendance $attendance): array {
+            // 休憩分数を計算する
+            $breakMinutes = $this->calculateBreakMinutes($attendance);
 
-            // 休憩秒数を計算する
-            $breakSeconds = $this->calculateBreakSeconds($attendance);
-
-            // 勤務秒数を計算する
-            $workSeconds = $this->calculateWorkSeconds($attendance, $breakSeconds);
+            // 勤務分数を計算する
+            $workMinutes = $this->calculateWorkMinutes($attendance, $breakMinutes);
 
             return [
                 // スタッフ名
                 'staffName' => $attendance->user->name,
 
                 // 出勤時刻
-                'clockIn' => $this->formatTime($attendance?->clock_in_at),
+                'clockIn' => $this->formatTime($attendance->clock_in_at),
 
                 // 退勤時刻
-                'clockOut' => $this->formatTime($attendance?->clock_out_at),
+                'clockOut' => $this->formatTime($attendance->clock_out_at),
 
                 // 休憩時間
                 // 出勤中かつ、まだ一度も休憩していない場合は空欄にする
@@ -62,7 +61,7 @@ class AttendanceListController extends Controller
                 // 合計勤務時間
                 // 出勤・退勤の両方がそろっているときだけ表示する
                 'workTime' => $this->shouldShowWorkTime($attendance)
-                    ? $this->formatSeconds($workSeconds)
+                    ? $this->formatMinutes($workMinutes)
                     : '',
 
                 // 勤怠詳細リンク
@@ -77,6 +76,7 @@ class AttendanceListController extends Controller
             'previousDate' => $targetDate->copy()->subDay()->format('Y-m-d'),
             'nextDate' => $targetDate->copy()->addDay()->format('Y-m-d'),
             'attendanceRows' => $attendanceRows,
+            'currentDateInput' => $targetDate->format('Y-m-d'),
         ]);
     }
 
@@ -137,77 +137,75 @@ class AttendanceListController extends Controller
             return '';
         }
 
-        // 完了済み休憩だけを合計して秒数に変換する
-        $breakSeconds = $completedBreaks->sum(function ($break): int {
-            return Carbon::parse($break->break_start_at)
-                ->diffInSeconds(Carbon::parse($break->break_end_at));
+        // 完了済み休憩だけを合計して分数に変換する
+        // 一覧表示と同じ粒度にそろえるため、秒は切り捨ててから計算する
+        $breakMinutes = $completedBreaks->sum(function ($break): int {
+            $breakStart = Carbon::parse($break->break_start_at)->startOfMinute();
+            $breakEnd = Carbon::parse($break->break_end_at)->startOfMinute();
+
+            return $breakStart->diffInMinutes($breakEnd);
         });
 
-        return $this->formatSeconds($breakSeconds);
+        return $this->formatMinutes($breakMinutes);
     }
 
     /**
-     * 休憩合計秒数を計算する
+     * 休憩合計分数を計算する
      */
-    private function calculateBreakSeconds(?Attendance $attendance): int
+    private function calculateBreakMinutes(Attendance $attendance): int
     {
-        // 勤怠データがない場合は 0 秒
-        if (!$attendance) {
-            return 0;
-        }
-
         // 開始・終了の両方が入っている休憩のみ合計する
         return $attendance->attendanceBreaks->sum(function ($break): int {
             if (empty($break->break_start_at) || empty($break->break_end_at)) {
                 return 0;
             }
 
-            return Carbon::parse($break->break_start_at)
-                ->diffInSeconds(Carbon::parse($break->break_end_at));
+            $breakStart = Carbon::parse($break->break_start_at)->startOfMinute();
+            $breakEnd = Carbon::parse($break->break_end_at)->startOfMinute();
+
+            return $breakStart->diffInMinutes($breakEnd);
         });
     }
 
     /**
-     * 勤務合計秒数を計算する
+     * 勤務合計分数を計算する
      */
-    private function calculateWorkSeconds(?Attendance $attendance, int $breakSeconds): int
+    private function calculateWorkMinutes(Attendance $attendance, int $breakMinutes): int
     {
         // 出勤または退勤が欠けている場合は勤務時間を計算しない
-        if (!$attendance || empty($attendance->clock_in_at) || empty($attendance->clock_out_at)) {
+        if (empty($attendance->clock_in_at) || empty($attendance->clock_out_at)) {
             return 0;
         }
 
-        // 出勤から退勤までの総秒数を求める
-        $totalSeconds = Carbon::parse($attendance->clock_in_at)
-            ->diffInSeconds(Carbon::parse($attendance->clock_out_at));
+        // 一覧表示と同じ粒度にそろえるため、秒は切り捨ててから計算する
+        $clockIn = Carbon::parse($attendance->clock_in_at)->startOfMinute();
+        $clockOut = Carbon::parse($attendance->clock_out_at)->startOfMinute();
 
-        // 総勤務秒数から休憩秒数を引く
+        // 出勤から退勤までの総分数を求める
+        $totalMinutes = $clockIn->diffInMinutes($clockOut);
+
+        // 総勤務分数から休憩分数を引く
         // 万が一マイナスになるのを防ぐため 0 未満にはしない
-        return max($totalSeconds - $breakSeconds, 0);
+        return max($totalMinutes - $breakMinutes, 0);
     }
 
     /**
      * 合計勤務時間を表示できる状態か判定する
      */
-    private function shouldShowWorkTime(?Attendance $attendance): bool
+    private function shouldShowWorkTime(Attendance $attendance): bool
     {
-        // 勤怠データ自体がない場合は表示しない
-        if (!$attendance) {
-            return false;
-        }
-
         // 出勤・退勤がそろっているときだけ表示する
         return !empty($attendance->clock_in_at) && !empty($attendance->clock_out_at);
     }
 
     /**
-     * 秒数を H:MM 形式に変換する
+     * 分数を H:MM 形式に変換する
      */
-    private function formatSeconds(int $seconds): string
+    private function formatMinutes(int $minutes): string
     {
-        $hours = intdiv($seconds, 3600);
-        $minutes = intdiv($seconds % 3600, 60);
+        $hours = intdiv($minutes, 60);
+        $restMinutes = $minutes % 60;
 
-        return sprintf('%d:%02d', $hours, $minutes);
+        return sprintf('%d:%02d', $hours, $restMinutes);
     }
 }

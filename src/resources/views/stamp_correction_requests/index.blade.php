@@ -15,31 +15,33 @@
         </div>
 
         {{-- タブ --}}
-        <div class="request-list__tabs" aria-label="申請ステータス切り替え">
+        <nav class="request-list__tabs" aria-label="申請ステータス切り替え">
             <a
                 href="{{ route('stamp_correction_request.list', ['status' => 'pending']) }}"
-                class="request-list__tab {{ $currentStatus === 'pending' ? 'request-list__tab--active' : '' }}">
+                class="request-list__tab {{ $currentStatus === 'pending' ? 'request-list__tab--active' : '' }}"
+                aria-current="{{ $currentStatus === 'pending' ? 'page' : 'false' }}">
                 承認待ち
             </a>
 
             <a
                 href="{{ route('stamp_correction_request.list', ['status' => 'approved']) }}"
-                class="request-list__tab {{ $currentStatus === 'approved' ? 'request-list__tab--active' : '' }}">
+                class="request-list__tab {{ $currentStatus === 'approved' ? 'request-list__tab--active' : '' }}"
+                aria-current="{{ $currentStatus === 'approved' ? 'page' : 'false' }}">
                 承認済み
             </a>
-        </div>
+        </nav>
 
         {{-- 一覧テーブル --}}
         <div class="request-list__table-wrap">
             <table class="request-list__table">
                 <thead class="request-list__table-head">
                     <tr class="request-list__table-row request-list__table-row--head">
-                        <th class="request-list__head-cell">状態</th>
-                        <th class="request-list__head-cell">名前</th>
-                        <th class="request-list__head-cell">対象日時</th>
-                        <th class="request-list__head-cell">申請理由</th>
-                        <th class="request-list__head-cell">申請日時</th>
-                        <th class="request-list__head-cell">詳細</th>
+                        <th class="request-list__head-cell" scope="col">状態</th>
+                        <th class="request-list__head-cell" scope="col">名前</th>
+                        <th class="request-list__head-cell" scope="col">対象日時</th>
+                        <th class="request-list__head-cell" scope="col">申請理由</th>
+                        <th class="request-list__head-cell" scope="col">申請日時</th>
+                        <th class="request-list__head-cell" scope="col">詳細</th>
                     </tr>
                 </thead>
 
@@ -56,9 +58,7 @@
                         </td>
                         <td class="request-list__body-cell">{{ $requestItem['appliedAt'] }}</td>
                         <td class="request-list__body-cell request-list__body-cell--detail">
-                            @if (!empty($requestItem['detailUrl']))
                             <a href="{{ $requestItem['detailUrl'] }}" class="request-list__detail-link">詳細</a>
-                            @endif
                         </td>
                     </tr>
                     @empty

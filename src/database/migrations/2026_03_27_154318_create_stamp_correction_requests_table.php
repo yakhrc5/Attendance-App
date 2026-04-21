@@ -20,8 +20,8 @@ class CreateStampCorrectionRequestsTable extends Migration
                 ->constrained('attendances')
                 ->cascadeOnDelete();
 
-            $table->dateTime('requested_clock_in_at')->nullable();
-            $table->dateTime('requested_clock_out_at')->nullable();
+            $table->dateTime('requested_clock_in_at');
+            $table->dateTime('requested_clock_out_at');
             $table->text('reason');
             $table->timestamp('approved_at')->nullable();
 

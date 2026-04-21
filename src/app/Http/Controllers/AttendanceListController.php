@@ -11,19 +11,34 @@ use Illuminate\View\View;
 
 class AttendanceListController extends Controller
 {
+    // ログインユーザーIDを取得する
+    private function currentUserId(): int
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        return $user->id;
+    }
+
     // 勤怠一覧画面を表示する
-    public function show(): View
+    public function index(): View
     {
         // クエリパラメータの月を取得する
         // 指定がない場合は今月を表示する
         $month = request('month', now()->format('Y-m'));
 
+        // 想定外の値が来た場合は今月に戻す
+        if (!preg_match('/^\d{4}-\d{2}$/', $month)) {
+            $month = now()->format('Y-m');
+        }
+
         // 月の基準日を作成する
         $targetMonth = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
 
         // ログインユーザーの対象月の勤怠一覧を取得する
-        $attendances = Attendance::with('attendanceBreaks')
-            ->where('user_id', Auth::id())
+        $attendances = Attendance::query()
+            ->with('attendanceBreaks')
+            ->where('user_id', $this->currentUserId())
             ->whereBetween('work_date', [
                 $targetMonth->copy()->startOfMonth()->toDateString(),
                 $targetMonth->copy()->endOfMonth()->toDateString(),
@@ -42,9 +57,22 @@ class AttendanceListController extends Controller
             'currentMonthLabel' => $targetMonth->format('Y/m'),
             'previousMonth' => $targetMonth->copy()->subMonth()->format('Y-m'),
             'nextMonth' => $targetMonth->copy()->addMonth()->format('Y-m'),
+            'currentMonthInput' => $targetMonth->format('Y-m'),
         ]);
     }
 
+    /**
+     * @param \Carbon\Carbon $targetMonth
+     * @param \Illuminate\Support\Collection<string, \App\Models\Attendance> $attendances
+     * @return array<int, array{
+     *     workDate: \Carbon\Carbon,
+     *     clockIn: string,
+     *     clockOut: string,
+     *     breakTime: string,
+     *     workTime: string,
+     *     detailUrl: string|null
+     * }>
+     */
     private function buildAttendanceRows(Carbon $targetMonth, Collection $attendances): array
     {
         $rows = [];
@@ -60,7 +88,6 @@ class AttendanceListController extends Controller
             $dateKey = $workDate->toDateString();
 
             // その日の勤怠データを取得する
-            // データがなければ null
             /** @var \App\Models\Attendance|null $attendance */
             $attendance = $attendances->get($dateKey);
 
@@ -88,7 +115,7 @@ class AttendanceListController extends Controller
                     ? $this->formatWorkTime($attendance)
                     : '',
 
-                // データがある日付は詳細リンクを表示するための URL を渡す
+                // データがある日付は詳細リンクを表示するためのURLを渡す
                 'detailUrl' => $attendance !== null
                     ? route('attendance.detail', ['id' => $attendance->id])
                     : null,
@@ -121,34 +148,45 @@ class AttendanceListController extends Controller
         }
 
         // 完了済み休憩のみ合計する
+        // 一覧表示と同じ粒度にそろえるため、秒は切り捨ててから計算する
         $breakMinutes = $completedBreaks->sum(function ($attendanceBreak): int {
-            return Carbon::parse($attendanceBreak->break_start_at)
-                ->diffInMinutes(Carbon::parse($attendanceBreak->break_end_at));
+            $breakStart = Carbon::parse($attendanceBreak->break_start_at)->startOfMinute();
+            $breakEnd = Carbon::parse($attendanceBreak->break_end_at)->startOfMinute();
+
+            return $breakStart->diffInMinutes($breakEnd);
         });
 
-        // 0分なら formatMinutes() の結果として 0:00 になる
         return $this->formatMinutes($breakMinutes);
     }
 
     // 勤務合計時間を H:i 形式で返す
     private function formatWorkTime(Attendance $attendance): string
     {
+        // 出勤時刻または退勤時刻がない場合は空欄にする
         if (empty($attendance->clock_in_at) || empty($attendance->clock_out_at)) {
             return '';
         }
 
-        $totalMinutes = Carbon::parse($attendance->clock_in_at)
-            ->diffInMinutes(Carbon::parse($attendance->clock_out_at));
+        // 一覧表示と同じ粒度にそろえるため、秒は切り捨ててから計算する
+        $clockIn = Carbon::parse($attendance->clock_in_at)->startOfMinute();
+        $clockOut = Carbon::parse($attendance->clock_out_at)->startOfMinute();
 
+        // 出勤から退勤までの総勤務時間を分で求める
+        $totalMinutes = $clockIn->diffInMinutes($clockOut);
+
+        // 完了済み休憩のみ合計する
         $breakMinutes = $attendance->attendanceBreaks->sum(function ($attendanceBreak): int {
             if (empty($attendanceBreak->break_start_at) || empty($attendanceBreak->break_end_at)) {
                 return 0;
             }
 
-            return Carbon::parse($attendanceBreak->break_start_at)
-                ->diffInMinutes(Carbon::parse($attendanceBreak->break_end_at));
+            $breakStart = Carbon::parse($attendanceBreak->break_start_at)->startOfMinute();
+            $breakEnd = Carbon::parse($attendanceBreak->break_end_at)->startOfMinute();
+
+            return $breakStart->diffInMinutes($breakEnd);
         });
 
+        // 勤務時間がマイナスにならないように調整する
         $workMinutes = max($totalMinutes - $breakMinutes, 0);
 
         return $this->formatMinutes($workMinutes);

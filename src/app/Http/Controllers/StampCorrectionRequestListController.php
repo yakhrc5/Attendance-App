@@ -3,18 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\StampCorrectionRequest;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
-use App\Models\User;
 
 class StampCorrectionRequestListController extends Controller
 {
-    /**
-     * 申請一覧画面
-     * - 一般ユーザー: 自分に紐づく修正申請のみ表示する
-     * - 管理者: 全一般ユーザーに紐づく修正申請を表示する
-     */
+    // 申請一覧画面を表示する
     public function index(): View
     {
         // ログイン中ユーザーを取得する
@@ -25,13 +21,15 @@ class StampCorrectionRequestListController extends Controller
         // 指定がなければ「承認待ち」を初期表示にする
         $currentStatus = request('status', 'pending');
 
+        // 想定外の値が来た場合は承認待ちに戻す
+        if (!in_array($currentStatus, ['pending', 'approved'], true)) {
+            $currentStatus = 'pending';
+        }
+
         // 修正申請一覧の取得クエリを作る
         // 一覧表示で使う勤怠情報とユーザー情報を一緒に読み込む
         $query = StampCorrectionRequest::query()
-            ->with([
-                'attendance.user',
-                'attendance',
-            ]);
+            ->with('attendance.user');
 
         // 一般ユーザーは自分に紐づく申請だけ表示する
         if ($loginUser->isUser()) {
@@ -54,16 +52,19 @@ class StampCorrectionRequestListController extends Controller
 
         // 新しい申請順で取得する
         $stampCorrectionRequests = $query
-            ->latest()
+            ->latest('created_at')
             ->get();
 
         // Blade で扱いやすい表示用データに整形する
         $requests = $stampCorrectionRequests->map(function (
             StampCorrectionRequest $stampCorrectionRequest
         ) use ($loginUser): array {
+            $attendance = $stampCorrectionRequest->attendance;
+            $attendanceUser = $attendance?->user;
+
             // 対象勤怠日を表示用に整形する
-            $workDate = $stampCorrectionRequest->attendance
-                ? $this->formatWorkDate($stampCorrectionRequest->attendance->work_date)
+            $workDate = $attendance
+                ? $this->formatWorkDate($attendance->work_date)
                 : '';
 
             // 申請日時を表示用に整形する
@@ -71,17 +72,11 @@ class StampCorrectionRequestListController extends Controller
                 ? $stampCorrectionRequest->created_at->format('Y/m/d')
                 : '';
 
-            // 一般ユーザーは既存の勤怠詳細画面へ遷移する
-            if ($loginUser->isUser()) {
-                $detailUrl = route('attendance.detail', [
-                    'id' => $stampCorrectionRequest->attendance_id,
-                ]);
-            } else {
-                // 管理者は修正申請承認画面へ遷移する
-                $detailUrl = route('admin.stamp_correction_request.approve', [
-                    'id' => $stampCorrectionRequest->id,
-                ]);
-            }
+            // 一般ユーザーは勤怠詳細画面へ遷移する
+            // 管理者は修正申請承認画面へ遷移する
+            $detailUrl = $loginUser->isUser()
+                ? route('attendance.detail', ['id' => $stampCorrectionRequest->attendance_id])
+                : route('admin.stamp_correction_request.approve', ['id' => $stampCorrectionRequest->id]);
 
             return [
                 // 承認状態ラベル
@@ -90,7 +85,7 @@ class StampCorrectionRequestListController extends Controller
                     : '承認済み',
 
                 // 申請者名
-                'userName' => $stampCorrectionRequest->attendance->user->name ?? '',
+                'userName' => $attendanceUser?->name ?? '',
 
                 // 対象日時
                 'workDate' => $workDate,
@@ -106,7 +101,6 @@ class StampCorrectionRequestListController extends Controller
             ];
         });
 
-        // 共通 Blade を表示する
         return view('stamp_correction_requests.index', [
             'currentStatus' => $currentStatus,
             'requests' => $requests,

@@ -11,7 +11,8 @@
 
     min-height: calc(100vh - 80px);
     padding: 54px 20px 80px;
-    background: #e1e1e1;
+    background: #f0eff2;
+    box-sizing: border-box;
 }
 
 /* =============================
@@ -72,7 +73,7 @@
     align-items: center;
     min-height: 96px;
     padding: 0 64px;
-    border-bottom: 1px solid #e1e1e1;
+    border-bottom: 1px solid #f0eff2;
     box-sizing: border-box;
 }
 
@@ -80,8 +81,8 @@
    備考行
 ============================= */
 .attendance-detail__row--note {
-    align-items: start;
-    padding-top: 16px;
+    align-items: center;
+    padding-top: 10px;
     padding-bottom: 8px;
 }
 
@@ -156,8 +157,8 @@
     justify-content: flex-start;
 }
 
-.attendance-detail__value--time-with-error,
-.attendance-detail__value--break {
+.attendance-detail__value--note {
+    align-items: center;
     width: 100%;
 }
 
@@ -268,11 +269,6 @@
    備考
    - 幅を時刻2欄ぶんにそろえる
 ============================= */
-.attendance-detail__value--note {
-    align-items: flex-start;
-    width: 100%;
-}
-
 .attendance-detail__note-block {
     position: relative;
     width: var(--time-group-width);
@@ -297,6 +293,8 @@
 }
 
 .attendance-detail__note-text {
+    display: flex;
+    align-items: center;
     width: var(--time-group-width);
     min-height: 80px;
     padding: 10px 12px;
@@ -356,9 +354,6 @@
     bottom: 6px;
 }
 
-/* =============================
-   備考エラー
-============================= */
 .attendance-detail__error-area--note {
     position: absolute;
     left: 0;
@@ -372,7 +367,7 @@
 .attendance-detail__actions {
     display: flex;
     justify-content: flex-end;
-    margin-top: 18px;
+    margin-top: 40px;
 }
 
 .attendance-detail__submit-button {
@@ -381,12 +376,20 @@
     padding: 0 24px;
     border: none;
     border-radius: 5px;
-    font-family: inherit;
     background: #000000;
     color: #ffffff;
+    font-family: inherit;
     font-size: 22px;
     font-weight: 700;
     cursor: pointer;
+}
+
+.attendance-detail__submit-button--approved {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #696969;
+    cursor: default;
 }
 
 /* =============================
@@ -410,6 +413,7 @@
         --time-gap: 20px;
         --time-separator-width: 18px;
 
+        min-height: calc(100vh - 76px);
         padding: 44px 24px 64px;
     }
 
@@ -424,7 +428,6 @@
     .attendance-detail__row {
         grid-template-columns: 130px 1fr;
         min-height: 88px;
-        padding: 0 24px;
     }
 
     .attendance-detail__row--note {
@@ -432,13 +435,11 @@
         padding-bottom: 16px;
     }
 
-    /* 名前 / 日付の箱自体を中央寄せする */
     .attendance-detail__value--text,
     .attendance-detail__value--date {
         justify-self: center;
     }
 
-    /* 時刻系は右カラム内で中央寄せする */
     .attendance-detail__value--time {
         justify-content: center;
     }
@@ -449,7 +450,6 @@
         min-height: 88px;
     }
 
-    /* 備考も中央寄せする */
     .attendance-detail__note-block,
     .attendance-detail__note-text {
         margin: 0 auto;
@@ -472,7 +472,6 @@
 
     .attendance-detail__submit-button {
         min-width: 120px;
-        font-family: inherit;
         height: 46px;
         font-size: 20px;
     }

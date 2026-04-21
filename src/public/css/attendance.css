@@ -1,45 +1,55 @@
 /* ================================
-   勤怠登録画面
+   勤怠登録画面全体
 ================================ */
 .attendance {
     display: flex;
     justify-content: center;
     min-height: calc(100vh - 80px);
-    padding: 0 24px;
+    padding: 200px 24px 40px;
     box-sizing: border-box;
     background-color: #f0eff2;
 }
 
 /* ================================
-   画面中央のコンテンツ枠
-   - 日付、時刻、ボタン群を縦並び
+   中央コンテンツ枠
 ================================ */
 .attendance__inner {
-    padding-top: 200px;
+    width: 100%;
+    max-width: 520px;
+}
+
+.attendance__content {
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
-    max-width: 520px;
     text-align: center;
 }
-/* ステータス表示 */
+
+/* ================================
+   ステータス表示
+================================ */
 .attendance__status {
-    max-width: 100px;
-    height: 40px;
-    align-content: center;
-    margin: 0 auto 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 100px;
+    min-height: 40px;
+    margin: 0 0 32px;
     padding: 8px 18px;
-    border-radius: 50px;
+    border-radius: 999px;
     background-color: #c8c8c8;
     color: #696969;
     font-size: 18px;
     font-weight: 700;
     line-height: 1;
-    letter-spacing: 15%;
+    letter-spacing: 0.15em;
+    white-space: nowrap;
 }
 
-/* 日付表示 */
+/* ================================
+   日付表示
+================================ */
 .attendance__date {
     margin: 0 0 40px;
     color: #000000;
@@ -48,7 +58,9 @@
     line-height: 1;
 }
 
-/* 現在時刻表示 */
+/* ================================
+   現在時刻表示
+================================ */
 .attendance__time {
     margin: 0 0 87px;
     color: #000000;
@@ -57,21 +69,26 @@
     line-height: 1;
 }
 
-/* ボタン群 */
+/* ================================
+   ボタン・メッセージ表示エリア
+================================ */
 .attendance__actions {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 48px;
-    min-height: 56px;
+    flex-wrap: wrap;
+    width: 100%;
+    min-height: 77px;
 }
 
-/* フォーム全体のスタイルリセット */
 .attendance__form {
     margin: 0;
 }
 
-/* 共通ボタン */
+/* ================================
+   共通ボタン
+================================ */
 .attendance__button {
     min-width: 220px;
     min-height: 77px;
@@ -82,8 +99,8 @@
     font-size: 32px;
     font-weight: 700;
     line-height: 1;
+    letter-spacing: 0.15em;
     cursor: pointer;
-    letter-spacing: 15%;
 }
 
 /* 黒ボタン */
@@ -98,14 +115,16 @@
     color: #000000;
 }
 
-/* 退勤後メッセージ */
+/* ================================
+   退勤後メッセージ
+================================ */
 .attendance__message {
+    margin: 0;
     color: #000000;
     font-size: 26px;
     font-weight: 700;
-    line-height: 1;
-    letter-spacing: 15%;
-    justify-content: center;
+    line-height: 1.4;
+    letter-spacing: 0.15em;
     text-align: center;
 }
 
@@ -115,16 +134,16 @@
 @media screen and (min-width: 768px) and (max-width: 850px) {
     .attendance {
         min-height: calc(100vh - 72px);
-        padding: 32px 20px;
+        padding: 120px 20px 32px;
     }
 
     .attendance__status {
-        margin-bottom: 40px;
+        margin-bottom: 32px;
         font-size: 16px;
     }
 
     .attendance__date {
-        margin-bottom: 20px;
+        margin-bottom: 24px;
         font-size: 28px;
     }
 
@@ -139,55 +158,12 @@
     }
 
     .attendance__button {
-        min-width: 150px;
-        min-height: 52px;
+        min-width: 180px;
+        min-height: 60px;
         font-size: 24px;
     }
 
     .attendance__message {
-        margin-top: 64px;
         font-size: 22px;
-    }
-}
-
-/* ================================
-   スマホ対応
-================================ */
-@media screen and (max-width: 767px) {
-    .attendance {
-        min-height: calc(100vh - 64px);
-        padding: 24px 16px;
-    }
-
-    .attendance__status {
-        margin-bottom: 32px;
-        font-size: 13px;
-    }
-
-    .attendance__date {
-        margin-bottom: 16px;
-        font-size: 22px;
-    }
-
-    .attendance__time {
-        margin-bottom: 40px;
-        font-size: 56px;
-    }
-
-    .attendance__actions {
-        flex-direction: column;
-        gap: 16px;
-        min-height: auto;
-    }
-
-    .attendance__button {
-        min-width: 140px;
-        min-height: 48px;
-        font-size: 22px;
-    }
-
-    .attendance__message {
-        margin-top: 48px;
-        font-size: 20px;
     }
 }

@@ -7,55 +7,6 @@
 @endsection
 
 @section('content')
-@php
-// 勤怠日を日本語表示用の Carbon に変換する
-$workDate = \Carbon\Carbon::parse($attendance->work_date)->locale('ja');
-
-// 編集可能画面で使う休憩行データを用意する
-$editableBreakRows = collect(old('breaks', []));
-
-// old() がない初回表示時は、現在の勤怠休憩データを使う
-if ($editableBreakRows->isEmpty()) {
-$editableBreakRows = $attendance->attendanceBreaks->map(function ($attendanceBreak) {
-return [
-'break_start_at' => optional($attendanceBreak->break_start_at)->format('H:i'),
-'break_end_at' => optional($attendanceBreak->break_end_at)->format('H:i'),
-];
-});
-}
-
-// 編集可能な状態では、最後の行が未入力のときは追加せず、
-// 最後の行に何か入っているときだけ空行を1つ追加する
-if (!$isPending) {
-$lastBreakRow = $editableBreakRows->last();
-$hasNoRows = $editableBreakRows->isEmpty();
-
-$lastRowHasInput = !$hasNoRows && (
-!empty($lastBreakRow['break_start_at']) ||
-!empty($lastBreakRow['break_end_at'])
-);
-
-if ($hasNoRows || $lastRowHasInput) {
-$editableBreakRows = $editableBreakRows->push([
-'break_start_at' => '',
-'break_end_at' => '',
-]);
-}
-}
-
-// 承認待ち画面で使う休憩行データを用意する
-$pendingBreakRows = collect();
-
-if ($pendingCorrectionRequest) {
-$pendingBreakRows = $pendingCorrectionRequest->stampCorrectionBreaks->map(function ($stampCorrectionBreak) {
-return [
-'break_start_at' => optional($stampCorrectionBreak->requested_break_start_at)->format('H:i'),
-'break_end_at' => optional($stampCorrectionBreak->requested_break_end_at)->format('H:i'),
-];
-});
-}
-@endphp
-
 <div class="attendance-detail">
     <div class="attendance-detail__inner">
         {{-- 画面見出し --}}
@@ -73,17 +24,14 @@ return [
                 @csrf
                 @else
                 {{-- 承認待ち画面ではラッパーのみ出力する --}}
-                <div class="attendance-detail__form-wrap attendance-detail__form-wrap--readonly">
+                <div class="attendance-detail__form-wrap">
                     @endif
 
                     <div class="attendance-detail__form">
-                        {{-- =============================
-                        共通行
-                        ============================== --}}
                         {{-- 名前 --}}
                         <div class="attendance-detail__row">
                             <div class="attendance-detail__label">名前</div>
-                            <div class="attendance-detail__value attendance-detail__value--text attendance-detail__value--name">
+                            <div class="attendance-detail__value attendance-detail__value--text">
                                 {{ $attendance->user->name }}
                             </div>
                         </div>
@@ -102,21 +50,18 @@ return [
                         </div>
 
                         @if (!$isPending)
-                        {{-- =============================
-                        修正可能画面のみ
-                        ============================== --}}
                         {{-- 出勤・退勤 --}}
-                        <div class="attendance-detail__row attendance-detail__row--time-with-error">
+                        <div class="attendance-detail__row">
                             <div class="attendance-detail__label">出勤・退勤</div>
 
-                            <div class="attendance-detail__value attendance-detail__value--time attendance-detail__value--time-with-error">
+                            <div class="attendance-detail__value attendance-detail__value--time">
                                 <div class="attendance-detail__time-block">
                                     <div class="attendance-detail__time-group">
                                         <input
                                             type="time"
                                             name="clock_in_at"
                                             class="attendance-detail__time-input"
-                                            value="{{ old('clock_in_at', optional($attendance->clock_in_at)->format('H:i')) }}">
+                                            value="{{ old('clock_in_at', $clockInValue) }}">
 
                                         <span class="attendance-detail__separator">～</span>
 
@@ -124,7 +69,7 @@ return [
                                             type="time"
                                             name="clock_out_at"
                                             class="attendance-detail__time-input"
-                                            value="{{ old('clock_out_at', optional($attendance->clock_out_at)->format('H:i')) }}">
+                                            value="{{ old('clock_out_at', $clockOutValue) }}">
                                     </div>
 
                                     <div class="attendance-detail__error-area attendance-detail__error-area--time">
@@ -146,12 +91,12 @@ return [
 
                         {{-- 休憩 --}}
                         @foreach ($editableBreakRows as $index => $breakRow)
-                        <div class="attendance-detail__row attendance-detail__row--break">
+                        <div class="attendance-detail__row">
                             <div class="attendance-detail__label">
                                 {{ $index === 0 ? '休憩' : '休憩' . ($index + 1) }}
                             </div>
 
-                            <div class="attendance-detail__value attendance-detail__value--time attendance-detail__value--break">
+                            <div class="attendance-detail__value attendance-detail__value--time">
                                 <div class="attendance-detail__break-block">
                                     <div class="attendance-detail__time-group">
                                         <input
@@ -199,9 +144,6 @@ return [
                             </div>
                         </div>
                         @else
-                        {{-- =============================
-                        承認待ち画面のみ
-                        ============================== --}}
                         {{-- 出勤・退勤 --}}
                         <div class="attendance-detail__row">
                             <div class="attendance-detail__label">出勤・退勤</div>
@@ -209,13 +151,13 @@ return [
                             <div class="attendance-detail__value attendance-detail__value--time">
                                 <div class="attendance-detail__time-group attendance-detail__time-group--readonly">
                                     <span class="attendance-detail__time-text">
-                                        {{ optional($pendingCorrectionRequest->requested_clock_in_at)->format('H:i') }}
+                                        {{ $pendingClockInValue }}
                                     </span>
 
                                     <span class="attendance-detail__separator">～</span>
 
                                     <span class="attendance-detail__time-text">
-                                        {{ optional($pendingCorrectionRequest->requested_clock_out_at)->format('H:i') }}
+                                        {{ $pendingClockOutValue }}
                                     </span>
                                 </div>
                             </div>
@@ -282,7 +224,7 @@ return [
 
         {{-- 承認待ちメッセージ --}}
         <p class="attendance-detail__pending-message">
-            ※承認待ちのため修正はできません。
+            *承認待ちのため修正はできません。
         </p>
         @endif
     </div>
