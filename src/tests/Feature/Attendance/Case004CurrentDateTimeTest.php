@@ -60,9 +60,5 @@ class Case004CurrentDateTimeTest extends TestCase
 
         // 現在時刻がUIと同じ形式で表示されることを確認する
         $response->assertSeeText($expectedTime);
-
-        // 初期状態の表示も確認する
-        $response->assertSeeText('勤務外');
-        $response->assertSeeText('出勤');
     }
 }

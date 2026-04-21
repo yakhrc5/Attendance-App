@@ -23,6 +23,14 @@ class Case012AdminAttendanceListTest extends TestCase
         $this->seed(UserSeeder::class);
     }
 
+    protected function tearDown(): void
+    {
+        // 他のテストに現在日時固定が影響しないように解除する
+        Carbon::setTestNow();
+
+        parent::tearDown();
+    }
+
     // その日になされた全ユーザーの勤怠情報が正確に確認できることを確認するテスト
     public function test_all_attendance_information_for_the_day_is_displayed_correctly(): void
     {
@@ -86,25 +94,24 @@ class Case012AdminAttendanceListTest extends TestCase
     // 遷移した際に現在の日付が表示されることを確認するテスト
     public function test_current_date_is_displayed_when_admin_opens_attendance_list_page(): void
     {
+        // 現在日時を固定する
+        $fixedNow = Carbon::create(2026, 4, 21, 9, 0, 0);
+        Carbon::setTestNow($fixedNow);
+
         // 管理者ユーザーを取得する
         $admin = $this->findAdminUser();
 
-        // 表示対象日を作成する
-        $targetDate = now()->copy()->startOfMonth();
-
-        // 管理者で勤怠一覧画面を開く
-        $response = $this->actingAs($admin)->get(
-            route('admin.attendance.list', ['date' => $targetDate->format('Y-m-d')])
-        );
+        // 日付パラメータを付けずに勤怠一覧画面を開く
+        $response = $this->actingAs($admin)->get(route('admin.attendance.list'));
 
         // 画面が正常に表示されることを確認する
         $response->assertOk();
 
         // 見出しに現在の日付が表示されていることを確認する
-        $response->assertSeeText($targetDate->format('Y年n月j日') . 'の勤怠');
+        $response->assertSeeText($fixedNow->format('Y年n月j日') . 'の勤怠');
 
         // 中央の日付表示に現在の日付が表示されていることを確認する
-        $response->assertSeeText($targetDate->format('Y/m/d'));
+        $response->assertSeeText($fixedNow->format('Y/m/d'));
     }
 
     // 「前日」を押下した時に前の日の勤怠情報が表示されることを確認するテスト

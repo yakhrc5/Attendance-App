@@ -21,7 +21,7 @@ class AttendanceListController extends Controller
         $targetDate = $this->resolveTargetDate($request->input('date'));
 
         // 対象日の勤怠データを取得する
-        // 一般ユーザーの勤怠だけに絞り、名前順で並べる
+        // 一般ユーザーの勤怠だけに絞る
         $attendances = Attendance::query()
             ->with([
                 'user:id,name,role',
@@ -31,10 +31,19 @@ class AttendanceListController extends Controller
             ->whereHas('user', function ($query) {
                 $query->where('role', User::ROLE_USER);
             })
-            ->join('users', 'attendances.user_id', '=', 'users.id')
-            ->orderBy('users.name')
-            ->select('attendances.*')
-            ->get();
+            ->get()
+            // user リレーションで読み込んだ名前を使って並び替える
+            // 同名ユーザーがいても順序が安定するように id も比較に使う
+            ->sort(function (Attendance $left, Attendance $right): int {
+                $nameCompare = strcmp($left->user->name, $right->user->name);
+
+                if ($nameCompare !== 0) {
+                    return $nameCompare;
+                }
+
+                return $left->id <=> $right->id;
+            })
+            ->values();
 
         // Blade に渡す一覧表示用データを整形する
         $attendanceRows = $attendances->map(function (Attendance $attendance): array {

@@ -85,6 +85,7 @@ class Case006ClockInTest extends TestCase
         $response->assertOk();
 
         // 退勤済のため、出勤ボタンが表示されないことを確認する
+        $response->assertSeeText('退勤済');
         $response->assertDontSee(route('attendance.clock-in'), false);
     }
 
@@ -101,12 +102,13 @@ class Case006ClockInTest extends TestCase
         $this->actingAs($user)->post(route('attendance.clock-in'));
 
         // 勤怠一覧画面を開く
-        $response = $this->actingAs($user)->get('/attendance/list');
+        $response = $this->actingAs($user)->get(route('attendance.list'));
 
         // 画面が正常に表示されることを確認する
         $response->assertOk();
 
         // 一覧画面に出勤時刻が表示されることを確認する
+        $response->assertSeeText($fixedNow->locale('ja')->isoFormat('MM/DD(dd)'));
         $response->assertSeeText($fixedNow->format('H:i'));
     }
 

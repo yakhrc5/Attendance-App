@@ -123,6 +123,7 @@ class Case001RegisterTest extends TestCase
         ]);
 
         $response->assertStatus(302);
+        $response->assertRedirect(route('verification.notice'));
         $response->assertSessionHasNoErrors();
 
         // ユーザーが登録されたことを確認する

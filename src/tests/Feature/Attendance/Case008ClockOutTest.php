@@ -88,13 +88,13 @@ class Case008ClockOutTest extends TestCase
         $this->actingAs($user)->post(route('attendance.clock-out'));
 
         // 勤怠一覧画面を開く
-        $response = $this->actingAs($user)->get('/attendance/list');
+        $response = $this->actingAs($user)->get(route('attendance.list'));
 
         // 画面が正常に表示されることを確認する
         $response->assertOk();
 
         // 一覧画面の日付表示に合わせて期待値を作る
-        $expectedDate = $baseDate->copy()->format('m/d');
+        $expectedDate = $baseDate->copy()->locale('ja')->isoFormat('MM/DD(dd)');
 
         // その日の行に退勤時刻が表示されることを確認する
         $response->assertSeeInOrder([

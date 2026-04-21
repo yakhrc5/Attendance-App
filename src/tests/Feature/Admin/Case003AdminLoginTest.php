@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Models\User;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -22,9 +23,10 @@ class Case003AdminLoginTest extends TestCase
     // メールアドレスが未入力の場合、バリデーションメッセージが表示されることを確認するテスト
     public function test_admin_login_requires_email(): void
     {
-        $response = $this->from(route('admin.login'))->post('/login', [
+        $response = $this->from(route('admin.login'))->post(route('login'), [
             'email' => '',
             'password' => 'password',
+            'role' => User::ROLE_ADMIN,
         ]);
 
         $response->assertStatus(302);
@@ -40,9 +42,10 @@ class Case003AdminLoginTest extends TestCase
     // パスワードが未入力の場合、バリデーションメッセージが表示されることを確認するテスト
     public function test_admin_login_requires_password(): void
     {
-        $response = $this->from(route('admin.login'))->post('/login', [
+        $response = $this->from(route('admin.login'))->post(route('login'), [
             'email' => 'admin@example.com',
             'password' => '',
+            'role' => User::ROLE_ADMIN,
         ]);
 
         $response->assertStatus(302);
@@ -58,9 +61,10 @@ class Case003AdminLoginTest extends TestCase
     // 登録内容と一致しない場合、バリデーションメッセージが表示されることを確認するテスト
     public function test_admin_login_fails_with_invalid_credentials(): void
     {
-        $response = $this->from(route('admin.login'))->post('/login', [
-            'email' => 'test-admin@example.com',
+        $response = $this->from(route('admin.login'))->post(route('login'), [
+            'email' => 'not-found@example.com',
             'password' => 'password',
+            'role' => User::ROLE_ADMIN,
         ]);
 
         $response->assertStatus(302);

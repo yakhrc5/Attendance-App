@@ -47,14 +47,16 @@ class AttendanceCorrectionRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
+            if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+
             $clockInAt = $this->input('clock_in_at');
             $clockOutAt = $this->input('clock_out_at');
             $breaks = $this->input('breaks', []);
 
-            // 対象の勤怠を取得する
             $attendance = Attendance::find($this->route('id'));
 
-            // 当日の退勤打刻前は修正申請不可
             if (
                 $attendance !== null
                 && Carbon::parse($attendance->work_date)->isToday()
@@ -68,8 +70,7 @@ class AttendanceCorrectionRequest extends FormRequest
                 return;
             }
 
-            // 1. 出勤・退勤の前後関係
-            if (!empty($clockInAt) && !empty($clockOutAt) && $clockInAt >= $clockOutAt) {
+            if ($clockInAt >= $clockOutAt) {
                 $validator->errors()->add(
                     'clock_in_at',
                     '出勤時間もしくは退勤時間が不適切な値です'
@@ -80,12 +81,10 @@ class AttendanceCorrectionRequest extends FormRequest
                 $breakStartAt = $break['break_start_at'] ?? null;
                 $breakEndAt = $break['break_end_at'] ?? null;
 
-                // 両方空なら未入力行としてスキップ
                 if (empty($breakStartAt) && empty($breakEndAt)) {
                     continue;
                 }
 
-                // 片方だけ入力
                 if (empty($breakStartAt) || empty($breakEndAt)) {
                     $validator->errors()->add(
                         "breaks.{$index}.break_time",
@@ -95,7 +94,6 @@ class AttendanceCorrectionRequest extends FormRequest
                     continue;
                 }
 
-                // 休憩の前後関係
                 if ($breakStartAt >= $breakEndAt) {
                     $validator->errors()->add(
                         "breaks.{$index}.break_time",
@@ -105,11 +103,9 @@ class AttendanceCorrectionRequest extends FormRequest
                     continue;
                 }
 
-                // 2. 休憩開始時間が出勤時間より前 / 退勤時間より後
                 if (
-                    !empty($clockInAt)
-                    && !empty($clockOutAt)
-                    && ($breakStartAt < $clockInAt || $breakStartAt > $clockOutAt)
+                    $breakStartAt < $clockInAt
+                    || $breakStartAt > $clockOutAt
                 ) {
                     $validator->errors()->add(
                         "breaks.{$index}.break_time",
@@ -119,8 +115,7 @@ class AttendanceCorrectionRequest extends FormRequest
                     continue;
                 }
 
-                // 3. 休憩終了時間が退勤時間より後
-                if (!empty($clockOutAt) && $breakEndAt > $clockOutAt) {
+                if ($breakEndAt > $clockOutAt) {
                     $validator->errors()->add(
                         "breaks.{$index}.break_time",
                         '休憩時間もしくは退勤時間が不適切な値です'

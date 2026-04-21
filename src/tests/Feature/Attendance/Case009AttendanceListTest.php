@@ -85,11 +85,13 @@ class Case009AttendanceListTest extends TestCase
         $response->assertSeeText('09:00');
         $response->assertSeeText('18:00');
         $response->assertSeeText('1:00');
+        $response->assertSeeText('8:00');
 
         $response->assertSeeText($secondAttendance['workDate']->format('m/d'));
         $response->assertSeeText('10:00');
         $response->assertSeeText('19:00');
         $response->assertSeeText('0:30');
+        $response->assertSeeText('8:30');
 
         // 他ユーザー固有の勤怠情報が表示されないことを確認する
         $response->assertDontSeeText('07:11');

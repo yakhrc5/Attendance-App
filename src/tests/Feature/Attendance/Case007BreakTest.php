@@ -107,12 +107,15 @@ class Case007BreakTest extends TestCase
         // 当日の出勤中データを作成する
         $attendance = $this->createTodayAttendance($user->id);
 
-        // 未終了の休憩データを作成して、休憩中状態を作る
-        $attendanceBreak = AttendanceBreak::query()->create([
-            'attendance_id' => $attendance->id,
-            'break_start_at' => $fixedNow->copy()->subMinutes(30)->toDateTimeString(),
-            'break_end_at' => null,
-        ]);
+        // 休憩入を行う
+        $this->actingAs($user)->post(route('attendance.break-start'));
+
+        // 休憩データが登録されることを確認する
+        $attendanceBreak = AttendanceBreak::query()
+            ->where('attendance_id', $attendance->id)
+            ->whereNull('break_end_at')
+            ->latest('id')
+            ->firstOrFail();
 
         // 勤怠打刻画面を開く
         $response = $this->actingAs($user)->get(route('attendance.index'));
@@ -192,7 +195,7 @@ class Case007BreakTest extends TestCase
         $this->actingAs($user)->post(route('attendance.break-end'));
 
         // 勤怠一覧画面を開く
-        $response = $this->actingAs($user)->get('/attendance/list');
+        $response = $this->actingAs($user)->get(route('attendance.list'));
 
         // 画面が正常に表示されることを確認する
         $response->assertOk();

@@ -4,7 +4,6 @@ namespace Tests\Feature\Attendance;
 
 use App\Models\Attendance;
 use App\Models\AttendanceBreak;
-use App\Models\StampCorrectionRequest;
 use App\Models\User;
 use Carbon\Carbon;
 use Database\Seeders\UserSeeder;

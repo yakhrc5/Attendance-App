@@ -59,7 +59,7 @@ class Case002LoginTest extends TestCase
     public function test_login_fails_with_invalid_credentials(): void
     {
         $response = $this->post(route('login'), [
-            'email' => 'user1@example.com',
+            'email' => 'not-found@example.com',
             'password' => 'password',
         ]);
 

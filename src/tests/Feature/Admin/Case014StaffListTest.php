@@ -33,9 +33,7 @@ class Case014AdminStaffListTest extends TestCase
         $generalUsers = $this->findGeneralUsers();
 
         // 管理者でスタッフ一覧画面を開く
-        $response = $this->actingAs($admin)->get(
-            route('admin.staff.list')
-        );
+        $response = $this->actingAs($admin)->get(route('admin.staff.list'));
 
         // 画面が正常に表示されることを確認する
         $response->assertOk();
@@ -275,8 +273,12 @@ class Case014AdminStaffListTest extends TestCase
             ->firstOrFail();
     }
 
-    // シーダーで投入した一般ユーザー一覧を取得する
-    private function findGeneralUsers()
+    /**
+     * シーダーで投入した一般ユーザー一覧を取得する
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, \App\Models\User>
+     */
+    private function findGeneralUsers(): \Illuminate\Database\Eloquent\Collection
     {
         return User::query()
             ->where('role', User::ROLE_USER)

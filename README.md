@@ -3,7 +3,7 @@
 ## アプリ概要
 本アプリは、一般ユーザーの勤怠打刻および勤怠修正申請、管理者による勤怠確認・修正・申請承認ができる勤怠管理アプリです。
 
-一般ユーザーは、出勤・退勤・休憩の打刻、勤怠一覧の確認、勤怠修正申請を行うことができます。
+一般ユーザーは、出勤・退勤・休憩の打刻、勤怠一覧の確認、勤怠修正申請を行うことができます。  
 管理者は、当日の勤怠一覧確認、スタッフ別勤怠一覧確認、勤怠詳細の修正、修正申請の承認を行うことができます。
 
 ---
@@ -38,7 +38,7 @@
 - Laravel 8.83.29
 - MySQL 8.0.26
 - nginx 1.21.1
-- JavaScript
+- JavaScript（Vanilla JS）
 - Docker / Docker Compose
 - HTML / CSS（Bladeテンプレート）
 
@@ -60,7 +60,7 @@ git clone https://github.com/yakhrc5/attendance_management_app.git
 
 2. 作業ディレクトリに移動
 ```bash
-cd Attendance-App
+cd attendance_management_app
 ```
 
 3. Docker Desktopを起動
@@ -96,7 +96,7 @@ docker compose exec php chown -R www-data:www-data /var/www/storage /var/www/boo
 docker compose exec php chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 ```
 
-## URL
+## アクセスURL
 - 開発環境: http://localhost/
 - 一般ユーザーログイン: http://localhost/login
 - 管理者ログイン: http://localhost/admin/login
@@ -127,7 +127,7 @@ docker compose exec php chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 - パスワード: `password123`
 
 ※ 上記ユーザーはシーディングで登録されます。  
-※ 一般ユーザーで新規登録した場合は、メール認証後にログインが可能です。
+※ 一般ユーザーで新規登録した場合は、メール認証後にログインできます。
 
 ---
 
